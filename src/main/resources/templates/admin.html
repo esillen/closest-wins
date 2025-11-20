@@ -46,6 +46,11 @@
 				
 				<div class="admin-section">
 					<h2>Game Management</h2>
+					
+					<div id="gameStatusContainer" class="game-status-section">
+						<p>Loading game status...</p>
+					</div>
+					
 					<a href="/create-game" class="admin-button" style="text-decoration: none; display: inline-block; margin-bottom: 0.5rem;">🎮 Create New Game</a>
 					<br>
 					<button class="admin-button danger" onclick="resetGame()">Reset Game</button>
@@ -81,6 +86,93 @@
 				console.error('Error loading statistics:', error);
 				document.getElementById('statsContainer').innerHTML = '<p class="error-text">Error loading statistics</p>';
 			}
+		}
+		
+		// Load game status
+		async function loadGameStatus() {
+			try {
+				const response = await fetch('/api/game');
+				if (response.ok) {
+					const game = await response.json();
+					displayGameStatus(game);
+				} else {
+					document.getElementById('gameStatusContainer').innerHTML = '<p class="error-text">Failed to load game status</p>';
+				}
+			} catch (error) {
+				console.error('Error loading game status:', error);
+				document.getElementById('gameStatusContainer').innerHTML = '<p class="error-text">Error loading game status</p>';
+			}
+		}
+		
+		function displayGameStatus(game) {
+			const container = document.getElementById('gameStatusContainer');
+			
+			const stateClass = game.state.toLowerCase();
+			const stateEmoji = game.state === 'WAITING' ? '⏸️' : '▶️';
+			
+			let html = `
+				<div class="game-status-info">
+					<div class="status-badge status-${stateClass}">
+						${stateEmoji} ${game.state}
+					</div>
+				</div>
+				
+				<div class="location-previews">
+					<div class="location-preview-item">
+						<div class="location-preview-label">Current Location</div>
+			`;
+			
+			if (game.currentLocation) {
+				html += `
+					<img src="${game.currentLocation.url}" 
+						alt="Current Location" 
+						class="location-preview-image"
+						onerror="this.src='https://via.placeholder.com/200x150?text=Image+Not+Found'">
+				`;
+			} else {
+				html += `<div class="location-preview-empty">No current location</div>`;
+			}
+			
+			html += `</div>`;
+			
+			// Next location preview
+			const nextLocation = game.upcomingLocations && game.upcomingLocations.length > 0 
+				? game.upcomingLocations[0] 
+				: null;
+			
+			html += `
+				<div class="location-preview-item">
+					<div class="location-preview-label">Next Location</div>
+			`;
+			
+			if (nextLocation) {
+				html += `
+					<img src="${nextLocation.url}" 
+						alt="Next Location" 
+						class="location-preview-image"
+						onerror="this.src='https://via.placeholder.com/200x150?text=Image+Not+Found'">
+				`;
+			} else {
+				html += `<div class="location-preview-empty">No upcoming location</div>`;
+			}
+			
+			html += `</div></div>`;
+			
+			// Add "Next Location" button if state is WAITING
+			if (game.state === 'WAITING') {
+				html += `
+					<div style="margin-top: 1rem;">
+						<button class="admin-button" onclick="nextLocation()">⏭️ Next Location</button>
+					</div>
+				`;
+			}
+			
+			container.innerHTML = html;
+		}
+		
+		function nextLocation() {
+			// Placeholder for next location functionality
+			alert('Next location functionality coming soon!');
 		}
 		
 		function displayStatistics(stats) {
@@ -149,11 +241,15 @@
 			}
 		}
 		
-		// Load statistics on page load
+		// Load statistics and game status on page load
 		loadStatistics();
+		loadGameStatus();
 		
-		// Refresh statistics every 5 seconds
-		setInterval(loadStatistics, 5000);
+		// Refresh statistics and game status every 5 seconds
+		setInterval(() => {
+			loadStatistics();
+			loadGameStatus();
+		}, 5000);
 	</script>
 </body>
 </html>

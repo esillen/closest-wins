@@ -725,6 +725,85 @@ button:active {
 	font-size: 1.125rem;
 }
 
+/* Game Status Section */
+.game-status-section {
+	margin-bottom: 1.5rem;
+	padding: 1.5rem;
+	background: #f8f9fa;
+	border-radius: 8px;
+}
+
+.game-status-info {
+	margin-bottom: 1rem;
+}
+
+.status-badge {
+	display: inline-block;
+	padding: 0.5rem 1rem;
+	border-radius: 20px;
+	font-weight: 700;
+	font-size: 1rem;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+
+.status-badge.status-waiting {
+	background: #FFF3CD;
+	color: #856404;
+	border: 2px solid #FFE69C;
+}
+
+.status-badge.status-playing {
+	background: #D4EDDA;
+	color: #155724;
+	border: 2px solid #C3E6CB;
+}
+
+.location-previews {
+	display: flex;
+	gap: 1.5rem;
+	margin-top: 1rem;
+}
+
+.location-preview-item {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+}
+
+.location-preview-label {
+	font-weight: 600;
+	color: #555;
+	margin-bottom: 0.5rem;
+	font-size: 0.9rem;
+}
+
+.location-preview-image {
+	width: 100%;
+	max-width: 200px;
+	height: 150px;
+	object-fit: cover;
+	border-radius: 8px;
+	border: 2px solid #ddd;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.location-preview-empty {
+	width: 100%;
+	max-width: 200px;
+	height: 150px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: #e9ecef;
+	border-radius: 8px;
+	border: 2px dashed #adb5bd;
+	color: #6c757d;
+	font-style: italic;
+	text-align: center;
+	padding: 1rem;
+}
+
 /* Join Page - Color Picker */
 .color-picker-wrapper {
 	display: flex;
