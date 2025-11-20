@@ -87,6 +87,15 @@ class PageController(
 		return "redirect:/admin"
 	}
 
+	@GetMapping("/admin/locations")
+	fun adminLocations(session: HttpSession, model: Model, redirectAttributes: RedirectAttributes): String {
+		if (!sessionService.isAdmin(session)) {
+			redirectAttributes.addFlashAttribute("error", "Admin access required")
+			return "redirect:/admin"
+		}
+		return "locations"
+	}
+
 	@GetMapping("/players")
 	fun players(model: Model): String {
 		model.addAttribute("players", playerService.getAllPlayers())
