@@ -43,6 +43,10 @@ class AdminService(
 		return playerService.removePlayer(playerId)
 	}
 
+	fun createGameWithLocations(locationIds: List<String>): Game {
+		return gameService.createGameWithLocations(locationIds)
+	}
+
 	data class GameStatistics(
 		val totalPlayers: Int,
 		val playersWithGuesses: Int,

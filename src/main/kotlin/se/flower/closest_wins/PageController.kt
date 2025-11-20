@@ -96,6 +96,15 @@ class PageController(
 		return "locations"
 	}
 
+	@GetMapping("/create-game")
+	fun createGame(session: HttpSession, redirectAttributes: RedirectAttributes): String {
+		if (!sessionService.isAdmin(session)) {
+			redirectAttributes.addFlashAttribute("error", "Admin access required")
+			return "redirect:/admin"
+		}
+		return "create-game"
+	}
+
 	@GetMapping("/players")
 	fun players(model: Model): String {
 		model.addAttribute("players", playerService.getAllPlayers())

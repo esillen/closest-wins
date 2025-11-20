@@ -79,8 +79,30 @@ class AdminController(
 		}
 	}
 
+	@PostMapping("/create-game")
+	fun createGame(
+		@RequestBody request: CreateGameRequest,
+		session: HttpSession
+	): ResponseEntity<Any> {
+		if (!sessionService.isAdmin(session)) {
+			return ResponseEntity.status(HttpStatus.FORBIDDEN)
+				.body(mapOf("error" to "Admin access required"))
+		}
+
+		return try {
+			val game = adminService.createGameWithLocations(request.locationIds)
+			ResponseEntity.ok(game)
+		} catch (e: IllegalArgumentException) {
+			ResponseEntity.badRequest().body(mapOf("error" to e.message))
+		}
+	}
+
 	data class LoginRequest(
 		val password: String
+	)
+
+	data class CreateGameRequest(
+		val locationIds: List<String>
 	)
 }
 

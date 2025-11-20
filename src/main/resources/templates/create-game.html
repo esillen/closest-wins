@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Create Game - Closest Wins</title>
+	<link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+	<nav>
+		<ul>
+			<li><a href="/play">Play</a></li>
+			<li><a href="/spectate">Spectate</a></li>
+			<li><a href="/join">Join</a></li>
+			<li><a href="/players">Players</a></li>
+			<li><a href="/admin">Admin</a></li>
+		</ul>
+	</nav>
+	
+	<main>
+		<div class="content wide">
+			<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+				<h1>Create New Game</h1>
+				<a href="/admin" class="admin-button">← Back to Admin</a>
+			</div>
+			
+			<div class="admin-section">
+				<h2>Select Locations</h2>
+				<p class="text-muted">Choose the locations for your game. They will be played in the order selected.</p>
+				
+				<div id="locationsContainer" class="condensed-locations-list">
+					<p>Loading locations...</p>
+				</div>
+				
+				<div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 2px solid #e0e0e0;">
+					<div id="selectedCount" class="selected-info">
+						<strong>Selected:</strong> <span id="count">0</span> locations
+					</div>
+					<button class="admin-button" onclick="createGame()" style="margin-top: 1rem; width: auto; padding: 0.75rem 2rem; font-size: 1rem;">
+						🎮 Create Game with Selected Locations
+					</button>
+				</div>
+			</div>
+		</div>
+	</main>
+	
+	<script>
+		let selectedLocationIds = [];
+		
+		// Load locations
+		async function loadLocations() {
+			try {
+				const response = await fetch('/api/locations');
+				if (response.ok) {
+					const locations = await response.json();
+					displayLocations(locations);
+				} else {
+					document.getElementById('locationsContainer').innerHTML = '<p class="error-text">Failed to load locations</p>';
+				}
+			} catch (error) {
+				console.error('Error loading locations:', error);
+				document.getElementById('locationsContainer').innerHTML = '<p class="error-text">Error loading locations</p>';
+			}
+		}
+		
+		function displayLocations(locations) {
+			const container = document.getElementById('locationsContainer');
+			
+			if (locations.length === 0) {
+				container.innerHTML = '<p class="text-muted">No locations available. <a href="/admin/locations">Create some locations</a> first!</p>';
+				return;
+			}
+			
+			container.innerHTML = locations.map(location => `
+				<div class="condensed-location-item">
+					<input type="checkbox" 
+						id="location-${location.id}" 
+						value="${location.id}" 
+						onchange="toggleLocation('${location.id}')"
+						class="location-checkbox">
+					<label for="location-${location.id}" class="location-label">
+						<img src="${location.url}" 
+							alt="Location" 
+							class="location-thumb" 
+							onerror="this.src='https://via.placeholder.com/80x60?text=Image'">
+						<div class="location-info">
+							<div class="location-coords-condensed">
+								📍 ${location.latitude.toFixed(4)}, ${location.longitude.toFixed(4)}
+							</div>
+						</div>
+					</label>
+				</div>
+			`).join('');
+		}
+		
+		function toggleLocation(locationId) {
+			const checkbox = document.getElementById(`location-${locationId}`);
+			
+			if (checkbox.checked) {
+				selectedLocationIds.push(locationId);
+			} else {
+				selectedLocationIds = selectedLocationIds.filter(id => id !== locationId);
+			}
+			
+			updateSelectedCount();
+		}
+		
+		function updateSelectedCount() {
+			document.getElementById('count').textContent = selectedLocationIds.length;
+		}
+		
+		async function createGame() {
+			if (selectedLocationIds.length === 0) {
+				alert('Please select at least one location');
+				return;
+			}
+			
+			if (!confirm(`Create a new game with ${selectedLocationIds.length} location(s)?`)) {
+				return;
+			}
+			
+			try {
+				const response = await fetch('/api/admin/create-game', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify({ locationIds: selectedLocationIds })
+				});
+				
+				if (response.ok) {
+					alert('Game created successfully!');
+					// Clear selections
+					selectedLocationIds = [];
+					document.querySelectorAll('.location-checkbox').forEach(cb => cb.checked = false);
+					updateSelectedCount();
+				} else {
+					const data = await response.json();
+					alert('Error: ' + (data.error || 'Failed to create game'));
+				}
+			} catch (error) {
+				console.error('Error creating game:', error);
+				alert('Failed to create game');
+			}
+		}
+		
+		// Load locations on page load
+		loadLocations();
+	</script>
+</body>
+</html>
+
