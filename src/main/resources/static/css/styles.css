@@ -753,6 +753,12 @@ button:active {
 	border: 2px solid #FFE69C;
 }
 
+.status-badge.status-counting-down {
+	background: #D1ECF1;
+	color: #0C5460;
+	border: 2px solid #BEE5EB;
+}
+
 .status-badge.status-playing {
 	background: #D4EDDA;
 	color: #155724;

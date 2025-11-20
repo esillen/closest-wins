@@ -97,6 +97,21 @@ class AdminController(
 		}
 	}
 
+	@PostMapping("/next-location")
+	fun nextLocation(session: HttpSession): ResponseEntity<Any> {
+		if (!sessionService.isAdmin(session)) {
+			return ResponseEntity.status(HttpStatus.FORBIDDEN)
+				.body(mapOf("error" to "Admin access required"))
+		}
+
+		return try {
+			val game = adminService.startNextLocation()
+			ResponseEntity.ok(game)
+		} catch (e: IllegalStateException) {
+			ResponseEntity.badRequest().body(mapOf("error" to e.message))
+		}
+	}
+
 	data class LoginRequest(
 		val password: String
 	)

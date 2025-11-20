@@ -47,6 +47,10 @@ class AdminService(
 		return gameService.createGameWithLocations(locationIds)
 	}
 
+	fun startNextLocation(): Game {
+		return gameService.startNextLocation()
+	}
+
 	data class GameStatistics(
 		val totalPlayers: Int,
 		val playersWithGuesses: Int,

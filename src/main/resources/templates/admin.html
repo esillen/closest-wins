@@ -107,13 +107,24 @@
 		function displayGameStatus(game) {
 			const container = document.getElementById('gameStatusContainer');
 			
-			const stateClass = game.state.toLowerCase();
-			const stateEmoji = game.state === 'WAITING' ? '⏸️' : '▶️';
+			const stateClass = game.state.toLowerCase().replace('_', '-');
+			let stateEmoji = '⏸️';
+			let stateDisplay = game.state;
+			
+			if (game.state === 'WAITING') {
+				stateEmoji = '⏸️';
+			} else if (game.state === 'COUNTING_DOWN') {
+				stateEmoji = '⏳';
+				stateDisplay = `COUNTING DOWN (${game.countdownSecondsLeft}s)`;
+			} else if (game.state === 'PLAYING') {
+				stateEmoji = '▶️';
+				stateDisplay = `PLAYING (${game.roundSecondsLeft}s)`;
+			}
 			
 			let html = `
 				<div class="game-status-info">
 					<div class="status-badge status-${stateClass}">
-						${stateEmoji} ${game.state}
+						${stateEmoji} ${stateDisplay}
 					</div>
 				</div>
 				
@@ -170,9 +181,26 @@
 			container.innerHTML = html;
 		}
 		
-		function nextLocation() {
-			// Placeholder for next location functionality
-			alert('Next location functionality coming soon!');
+		async function nextLocation() {
+			if (!confirm('Start the next location?')) {
+				return;
+			}
+			
+			try {
+				const response = await fetch('/api/admin/next-location', {
+					method: 'POST'
+				});
+				const data = await response.json();
+				if (response.ok) {
+					// Reload game status immediately
+					loadGameStatus();
+				} else {
+					alert('Error: ' + (data.error || 'Failed to start next location'));
+				}
+			} catch (error) {
+				console.error('Error starting next location:', error);
+				alert('Failed to start next location');
+			}
 		}
 		
 		function displayStatistics(stats) {
