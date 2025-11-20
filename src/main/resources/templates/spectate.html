@@ -70,8 +70,9 @@
 			noWrap: true
 		}).addTo(map);
 		
-		// Store player markers
+		// Store player markers and real location marker
 		const playerMarkers = new Map();
+		let realLocationMarker = null;
 		
 		// Create or update style for player marker color
 		function ensurePlayerStyle(playerId, color) {
@@ -125,7 +126,7 @@
 		}
 		
 		// Update markers on the map
-		function updateMap(players) {
+		function updateMap(players, game) {
 			const playersWithGuesses = players.filter(p => p.currentGuess != null);
 			
 			// Update player count
@@ -163,15 +164,58 @@
 					playerMarkers.set(player.id, marker);
 				}
 			});
+			
+			// Handle real location marker in WAITING state
+			if (game && game.state === 'WAITING' && game.currentLocation) {
+				const lat = game.currentLocation.latitude;
+				const lng = normalizeLongitude(game.currentLocation.longitude);
+				
+				if (realLocationMarker) {
+					// Update existing marker
+					realLocationMarker.setLatLng([lat, lng]);
+				} else {
+					// Create real location marker
+					const realIcon = L.divIcon({
+						className: 'real-location-marker',
+						html: '📍',
+						iconSize: [60, 60],
+						iconAnchor: [30, 30],
+						popupAnchor: [0, -30]
+					});
+					
+					realLocationMarker = L.marker([lat, lng], {
+						icon: realIcon,
+						zIndexOffset: 1000 // Higher z-index to appear on top
+					}).addTo(map);
+					
+					realLocationMarker.bindPopup(`<strong>Real Location</strong><br>📍 ${lat.toFixed(6)}, ${lng.toFixed(6)}`);
+				}
+			} else {
+				// Remove real location marker if not in WAITING state or no location
+				if (realLocationMarker) {
+					map.removeLayer(realLocationMarker);
+					realLocationMarker = null;
+				}
+			}
 		}
+		
+		// Store current game state
+		let currentGameState = null;
 		
 		// Fetch players and update map
 		async function fetchAndUpdatePlayers() {
 			try {
-				const response = await fetch('/api/players');
-				if (response.ok) {
-					const players = await response.json();
-					updateMap(players);
+				const [playersResponse, gameResponse] = await Promise.all([
+					fetch('/api/players'),
+					fetch('/api/game')
+				]);
+				
+				if (playersResponse.ok && gameResponse.ok) {
+					const players = await playersResponse.json();
+					const game = await gameResponse.json();
+					currentGameState = game;
+					
+					updateMap(players, game);
 					updateLeaderboard(players);
 					
 					// Update status
@@ -179,7 +223,7 @@
 					statusEl.classList.remove('updating');
 					statusEl.innerHTML = '<span class="pulse"></span><span>Live updates active</span>';
 				} else {
-					console.error('Failed to fetch players');
+					console.error('Failed to fetch players or game');
 				}
 			} catch (error) {
 				console.error('Error fetching players:', error);

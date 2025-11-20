@@ -344,6 +344,32 @@ button:active {
 	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
 }
 
+.real-location-marker {
+	background: linear-gradient(135deg, #ff6b6b 0%, #ff5252 100%) !important;
+	border: 5px solid #ffffff !important;
+	border-radius: 50% !important;
+	width: 60px !important;
+	height: 60px !important;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	font-size: 2.25rem !important;
+	box-shadow: 0 4px 20px rgba(255, 107, 107, 0.8), 0 0 0 3px rgba(255, 82, 82, 0.3) !important;
+	animation: pulse-real-location 2s ease-in-out infinite;
+	z-index: 1000 !important;
+}
+
+@keyframes pulse-real-location {
+	0%, 100% {
+		box-shadow: 0 4px 20px rgba(255, 107, 107, 0.8), 0 0 0 3px rgba(255, 82, 82, 0.3);
+		transform: scale(1);
+	}
+	50% {
+		box-shadow: 0 4px 30px rgba(255, 107, 107, 1), 0 0 0 8px rgba(255, 82, 82, 0.5);
+		transform: scale(1.05);
+	}
+}
+
 /* Not Logged In State */
 .not-logged-in {
 	text-align: center;

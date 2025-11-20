@@ -133,12 +133,8 @@ class GameService(
 	private fun transitionToWaiting() {
 		val game = currentGame.get()
 		
-		
-		
 		val newGame = game.copy(
 			state = GameState.WAITING,
-			currentLocation = null,
-			roundSecondsLeft = 0
 		)
 		
 		currentGame.set(newGame)

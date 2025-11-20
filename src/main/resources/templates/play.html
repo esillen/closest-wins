@@ -76,7 +76,9 @@
 		}).addTo(map);
 		
 		let currentMarker = null;
+		let realLocationMarker = null;
 		let isSubmitting = false;
+		let currentGameState = null;
 		
 		// Get player data
 		const playerEmoji = /*[[${currentPlayer?.emoji}]]*/ '📍';
@@ -122,6 +124,11 @@
 		
 		// Handle map clicks
 		map.on('click', function(e) {
+			// Disable guess placement in WAITING and COUNTING_DOWN states
+			if (currentGameState && (currentGameState.state === 'WAITING' || currentGameState.state === 'COUNTING_DOWN')) {
+				return;
+			}
+			
 			if (isSubmitting) return;
 			
 			const lat = e.latlng.lat;
@@ -142,6 +149,10 @@
 			
 			// Make marker draggable
 			currentMarker.on('dragend', function() {
+				// Check state again before allowing drag
+				if (currentGameState && (currentGameState.state === 'WAITING' || currentGameState.state === 'COUNTING_DOWN')) {
+					return;
+				}
 				const position = currentMarker.getLatLng();
 				const normalizedLng = normalizeLongitude(position.lng);
 				submitGuess(position.lat, normalizedLng);
@@ -196,10 +207,48 @@
 				const response = await fetch('/api/game');
 				if (response.ok) {
 					const game = await response.json();
+					currentGameState = game;
 					displayCurrentLocation(game.currentLocation, game);
+					updateRealLocationMarker(game);
 				}
 			} catch (error) {
 				console.error('Error loading current location:', error);
+			}
+		}
+		
+		// Update real location marker on map
+		function updateRealLocationMarker(game) {
+			// Show real location marker only in WAITING state
+			if (game && game.state === 'WAITING' && game.currentLocation) {
+				const lat = game.currentLocation.latitude;
+				const lng = normalizeLongitude(game.currentLocation.longitude);
+				
+				if (realLocationMarker) {
+					// Update existing marker
+					realLocationMarker.setLatLng([lat, lng]);
+				} else {
+					// Create real location marker
+					const realIcon = L.divIcon({
+						className: 'real-location-marker',
+						html: '📍',
+						iconSize: [60, 60],
+						iconAnchor: [30, 30],
+						popupAnchor: [0, -30]
+					});
+					
+					realLocationMarker = L.marker([lat, lng], {
+						icon: realIcon,
+						zIndexOffset: 1000 // Higher z-index to appear on top
+					}).addTo(map);
+					
+					realLocationMarker.bindPopup(`<strong>Real Location</strong><br>📍 ${lat.toFixed(6)}, ${lng.toFixed(6)}`);
+				}
+			} else {
+				// Remove real location marker if not in WAITING state or no location
+				if (realLocationMarker) {
+					map.removeLayer(realLocationMarker);
+					realLocationMarker = null;
+				}
 			}
 		}
 		
@@ -260,8 +309,11 @@
 			// Subscribe to game updates
 			stompClient.subscribe('/topic/game', function(message) {
 				const game = JSON.parse(message.body);
+				currentGameState = game;
 				// Update current location display with game state
 				displayCurrentLocation(game.currentLocation, game);
+				// Update real location marker
+				updateRealLocationMarker(game);
 			});
 		}, function(error) {
 			console.error('WebSocket connection error:', error);
