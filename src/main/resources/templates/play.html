@@ -47,7 +47,17 @@
 					</div>
 				</div>
 				
-				<div id="map"></div>
+				<div class="spectate-container">
+					<div class="spectate-main">
+						<div id="map"></div>
+					</div>
+					<div class="spectate-sidebar">
+						<h3 style="margin-top: 0; margin-bottom: 1rem; color: #667eea;">Players</h3>
+						<div id="playerList" class="leaderboard">
+							<p class="text-muted">Loading players...</p>
+						</div>
+					</div>
+				</div>
 				<div class="map-instructions">
 					💡 Click anywhere on the map to drop a pin and submit your guess. You can update your guess by clicking a new location.
 				</div>
@@ -77,6 +87,7 @@
 		
 		let currentMarker = null;
 		let realLocationMarker = null;
+		const playerMarkers = new Map(); // Track markers for all other players
 		let isSubmitting = false;
 		let currentGameState = null;
 		
@@ -210,6 +221,8 @@
 					currentGameState = game;
 					displayCurrentLocation(game.currentLocation, game);
 					updateRealLocationMarker(game);
+					updateAllPlayerMarkers(game);
+					updatePlayerList(game.players);
 				}
 			} catch (error) {
 				console.error('Error loading current location:', error);
@@ -224,6 +237,28 @@
 				iconSize: [60, 60],
 				iconAnchor: [30, 30],
 				popupAnchor: [0, -30]
+			});
+		}
+		
+		// Ensure player-specific marker styles exist
+		function ensurePlayerStyle(playerId, color) {
+			if (!document.getElementById(`player-style-${playerId}`)) {
+				const style = document.createElement('style');
+				style.id = `player-style-${playerId}`;
+				style.textContent = `.marker-${playerId} { border-color: ${color} !important; }`;
+				document.head.appendChild(style);
+			}
+		}
+		
+		// Create custom icon for other players
+		function createCustomPlayerIcon(player) {
+			ensurePlayerStyle(player.id, player.color);
+			return L.divIcon({
+				className: `custom-marker marker-${player.id}`,
+				html: player.emoji,
+				iconSize: [40, 40],
+				iconAnchor: [20, 20],
+				popupAnchor: [0, -20]
 			});
 		}
 		
@@ -251,6 +286,88 @@
 					realLocationMarker = null;
 				}
 			}
+		}
+		
+		// Update all player markers on the map (only in WAITING state)
+		function updateAllPlayerMarkers(game) {
+			if (!game || game.state !== 'WAITING') {
+				// Remove all player markers when not in WAITING state
+				for (const [playerId, marker] of playerMarkers.entries()) {
+					map.removeLayer(marker);
+					playerMarkers.delete(playerId);
+				}
+				return;
+			}
+			
+			// In WAITING state, show all player guesses
+			const players = game.players || [];
+			const playersWithGuesses = players.filter(p => p.currentGuess != null);
+			const currentPlayerIds = new Set(playersWithGuesses.map(p => p.id));
+			
+			// Remove markers for players who no longer have guesses
+			for (const [playerId, marker] of playerMarkers.entries()) {
+				if (!currentPlayerIds.has(playerId)) {
+					map.removeLayer(marker);
+					playerMarkers.delete(playerId);
+				}
+			}
+			
+			// Add or update markers for players with guesses
+			playersWithGuesses.forEach(player => {
+				const lat = player.currentGuess.latitude;
+				const lng = normalizeLongitude(player.currentGuess.longitude);
+				
+				if (playerMarkers.has(player.id)) {
+					// Update existing marker
+					const marker = playerMarkers.get(player.id);
+					marker.setLatLng([lat, lng]);
+					marker.setIcon(createCustomPlayerIcon(player));
+					marker.bindPopup(`<strong>${player.name}</strong><br>📍 ${lat.toFixed(6)}, ${lng.toFixed(6)}`);
+				} else {
+					// Create new marker
+					const marker = L.marker([lat, lng], {
+						icon: createCustomPlayerIcon(player)
+					}).addTo(map);
+					
+					marker.bindPopup(`<strong>${player.name}</strong><br>📍 ${lat.toFixed(6)}, ${lng.toFixed(6)}`);
+					playerMarkers.set(player.id, marker);
+				}
+			});
+		}
+		
+		// Update player list
+		function updatePlayerList(players) {
+			const playerList = document.getElementById('playerList');
+			
+			if (!players || players.length === 0) {
+				playerList.innerHTML = '<p class="text-muted">No players yet</p>';
+				return;
+			}
+			
+			// Sort players by score (highest first)
+			const sortedPlayers = [...players].sort((a, b) => b.score - a.score);
+			
+			playerList.innerHTML = sortedPlayers.map((player, index) => {
+				const rank = index + 1;
+				const rankClass = rank <= 3 ? `rank-${rank}` : '';
+				
+				// Display lastScore in green if it's greater than 0
+				let scoreDisplay = player.score;
+				if (player.lastScore > 0) {
+					scoreDisplay += ` <span style="color: #28a745;">(+${player.lastScore})</span>`;
+				}
+				
+				return `
+					<div class="leaderboard-row" style="border-color: ${player.color};">
+						<div class="leaderboard-rank ${rankClass}">${rank}</div>
+						<div class="leaderboard-emoji">${player.emoji}</div>
+						<div class="leaderboard-info">
+							<div class="leaderboard-name">${player.name}</div>
+						</div>
+						<div class="leaderboard-score">${scoreDisplay}</div>
+					</div>
+				`;
+			}).join('');
 		}
 		
 		function displayCurrentLocation(location, game) {
@@ -324,6 +441,10 @@
 				displayCurrentLocation(game.currentLocation, game);
 				// Update real location marker
 				updateRealLocationMarker(game);
+				// Update all player markers (only visible in WAITING state)
+				updateAllPlayerMarkers(game);
+				// Update player list
+				updatePlayerList(game.players);
 			});
 		}, function(error) {
 			console.error('WebSocket connection error:', error);

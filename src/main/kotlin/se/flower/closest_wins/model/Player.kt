@@ -6,6 +6,7 @@ data class Player(
     val emoji: String,
     val color: String,
     val currentGuess: Guess? = null,
-    val score: Int = 0
+    val score: Int = 0,
+    val lastScore: Int = 0
 )
 

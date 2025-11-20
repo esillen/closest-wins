@@ -5,6 +5,7 @@ import se.flower.closest_wins.model.Game
 import se.flower.closest_wins.model.GameSettings
 import se.flower.closest_wins.model.GameState
 import se.flower.closest_wins.model.Location
+import se.flower.closest_wins.util.DistanceCalculator
 import java.util.concurrent.atomic.AtomicReference
 
 @Service
@@ -57,6 +58,11 @@ class GameService(
 		
 		if (game.upcomingLocations.isEmpty()) {
 			throw IllegalStateException("No upcoming locations available")
+		}
+
+		// Clear all player guesses when starting a new location
+		playerService.getAllPlayers().forEach { player ->
+			playerService.clearPlayerGuess(player.id)
 		}
 
 		// Move current location to past
@@ -137,11 +143,47 @@ class GameService(
 	private fun transitionToWaiting() {
 		val game = currentGame.get()
 		
+		// Calculate and award scores if there's a current location
+		if (game.currentLocation != null) {
+			calculateAndAwardScores(game.currentLocation)
+		}
+		
 		val newGame = game.copy(
 			state = GameState.WAITING,
 		)
 		
 		currentGame.set(newGame)
+	}
+	
+	private fun calculateAndAwardScores(location: Location) {
+		val players = playerService.getAllPlayers()
+		
+		// Get players with guesses and calculate their distances
+		val playersWithDistances = players
+			.filter { it.currentGuess != null }
+			.map { player ->
+				val guess = player.currentGuess!!
+				val distance = DistanceCalculator.calculateDistance(
+					guess.latitude, guess.longitude,
+					location.latitude, location.longitude
+				)
+				Pair(player, distance)
+			}
+			.sortedBy { it.second } // Sort by distance, closest first
+		
+		// Award points based on ranking
+		val totalPlayers = playersWithDistances.size
+		playersWithDistances.forEachIndexed { index, (player, _) ->
+			val pointsEarned = totalPlayers - index
+			playerService.updatePlayerScore(player.id, pointsEarned)
+		}
+		
+		// Players without guesses get 0 points
+		players
+			.filter { it.currentGuess == null }
+			.forEach { player ->
+				playerService.updatePlayerScore(player.id, 0)
+			}
 	}
 
 	fun resetGame() {

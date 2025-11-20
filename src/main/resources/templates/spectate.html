@@ -112,6 +112,13 @@
 			leaderboard.innerHTML = sortedPlayers.map((player, index) => {
 				const rank = index + 1;
 				const rankClass = rank <= 3 ? `rank-${rank}` : '';
+				
+				// Display lastScore in green if it's greater than 0
+				let scoreDisplay = player.score;
+				if (player.lastScore > 0) {
+					scoreDisplay += ` <span style="color: #28a745;">(+${player.lastScore})</span>`;
+				}
+				
 				return `
 					<div class="leaderboard-row" style="border-color: ${player.color};">
 						<div class="leaderboard-rank ${rankClass}">${rank}</div>
@@ -119,7 +126,7 @@
 						<div class="leaderboard-info">
 							<div class="leaderboard-name">${player.name}</div>
 						</div>
-						<div class="leaderboard-score">${player.score}</div>
+						<div class="leaderboard-score">${scoreDisplay}</div>
 					</div>
 				`;
 			}).join('');
@@ -138,43 +145,54 @@
 		
 		// Update markers on the map
 		function updateMap(players, game) {
-			const playersWithGuesses = players.filter(p => p.currentGuess != null);
-			
-			// Update player count
-			document.getElementById('playerCount').textContent = playersWithGuesses.length;
-			
-			// Create a set of current player IDs with guesses
-			const currentPlayerIds = new Set(playersWithGuesses.map(p => p.id));
-			
-			// Remove markers for players who no longer have guesses or don't exist
-			for (const [playerId, marker] of playerMarkers.entries()) {
-				if (!currentPlayerIds.has(playerId)) {
+			// Only show player markers in WAITING state
+			if (!game || game.state !== 'WAITING') {
+				// Remove all player markers when not in WAITING state
+				for (const [playerId, marker] of playerMarkers.entries()) {
 					map.removeLayer(marker);
 					playerMarkers.delete(playerId);
 				}
-			}
-			
-			// Add or update markers for players with guesses
-			playersWithGuesses.forEach(player => {
-				const lat = player.currentGuess.latitude;
-				const lng = normalizeLongitude(player.currentGuess.longitude);
+				document.getElementById('playerCount').textContent = '0';
+			} else {
+				// In WAITING state, show all player guesses
+				const playersWithGuesses = players.filter(p => p.currentGuess != null);
 				
-				if (playerMarkers.has(player.id)) {
-					// Update existing marker position
-					const marker = playerMarkers.get(player.id);
-					marker.setLatLng([lat, lng]);
-					marker.setIcon(createCustomIcon(player));
-					marker.bindPopup(`<strong>${player.name}</strong><br>📍 ${lat.toFixed(6)}, ${lng.toFixed(6)}`);
-				} else {
-					// Create new marker
-					const marker = L.marker([lat, lng], {
-						icon: createCustomIcon(player)
-					}).addTo(map);
-					
-					marker.bindPopup(`<strong>${player.name}</strong><br>📍 ${lat.toFixed(6)}, ${lng.toFixed(6)}`);
-					playerMarkers.set(player.id, marker);
+				// Update player count
+				document.getElementById('playerCount').textContent = playersWithGuesses.length;
+				
+				// Create a set of current player IDs with guesses
+				const currentPlayerIds = new Set(playersWithGuesses.map(p => p.id));
+				
+				// Remove markers for players who no longer have guesses or don't exist
+				for (const [playerId, marker] of playerMarkers.entries()) {
+					if (!currentPlayerIds.has(playerId)) {
+						map.removeLayer(marker);
+						playerMarkers.delete(playerId);
+					}
 				}
-			});
+				
+				// Add or update markers for players with guesses
+				playersWithGuesses.forEach(player => {
+					const lat = player.currentGuess.latitude;
+					const lng = normalizeLongitude(player.currentGuess.longitude);
+					
+					if (playerMarkers.has(player.id)) {
+						// Update existing marker position
+						const marker = playerMarkers.get(player.id);
+						marker.setLatLng([lat, lng]);
+						marker.setIcon(createCustomIcon(player));
+						marker.bindPopup(`<strong>${player.name}</strong><br>📍 ${lat.toFixed(6)}, ${lng.toFixed(6)}`);
+					} else {
+						// Create new marker
+						const marker = L.marker([lat, lng], {
+							icon: createCustomIcon(player)
+						}).addTo(map);
+						
+						marker.bindPopup(`<strong>${player.name}</strong><br>📍 ${lat.toFixed(6)}, ${lng.toFixed(6)}`);
+						playerMarkers.set(player.id, marker);
+					}
+				});
+			}
 			
 			// Handle real location marker in WAITING state
 			if (game && game.state === 'WAITING' && game.currentLocation) {

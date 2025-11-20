@@ -33,7 +33,8 @@ class PlayerService {
 		val player = players[playerId] ?: return null
 		val updatedPlayer = player.copy(
 			currentGuess = guess,
-			score = player.score
+			score = player.score,
+			lastScore = player.lastScore
 		)
 		players[playerId] = updatedPlayer
 		return updatedPlayer
@@ -43,7 +44,18 @@ class PlayerService {
 		val player = players[playerId] ?: return null
 		val updatedPlayer = player.copy(
 			currentGuess = null,
-			score = player.score
+			score = player.score,
+			lastScore = player.lastScore
+		)
+		players[playerId] = updatedPlayer
+		return updatedPlayer
+	}
+	
+	fun updatePlayerScore(playerId: String, pointsEarned: Int): Player? {
+		val player = players[playerId] ?: return null
+		val updatedPlayer = player.copy(
+			score = player.score + pointsEarned,
+			lastScore = pointsEarned
 		)
 		players[playerId] = updatedPlayer
 		return updatedPlayer
