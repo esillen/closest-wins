@@ -42,8 +42,9 @@ class LocationController(
 
         val location = locationService.createLocation(
             url = request.url,
+            latitude = request.latitude,
             longitude = request.longitude,
-            latitude = request.latitude
+            description = request.description
         )
         return ResponseEntity.ok(location)
     }
@@ -62,8 +63,9 @@ class LocationController(
         val location = locationService.updateLocation(
             id = id,
             url = request.url,
+            latitude = request.latitude,
             longitude = request.longitude,
-            latitude = request.latitude
+            description = request.description
         )
         return if (location != null) {
             ResponseEntity.ok(location)
@@ -92,8 +94,9 @@ class LocationController(
 
     data class LocationRequest(
         val url: String,
+        val latitude: Double,
         val longitude: Double,
-        val latitude: Double
+        val description: String
     )
 }
 

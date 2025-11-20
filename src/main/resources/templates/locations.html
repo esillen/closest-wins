@@ -34,6 +34,10 @@
 						<input type="url" id="newLocationUrl" placeholder="https://example.com/image.jpg" required>
 					</div>
 					<div class="form-group">
+						<label for="newLocationDescription">Description</label>
+						<input type="text" id="newLocationDescription" placeholder="Eiffel Tower, Paris" required>
+					</div>
+					<div class="form-group">
 						<label for="newLocationLatitude">Latitude</label>
 						<input type="number" id="newLocationLatitude" step="0.000001" min="-90" max="90" placeholder="40.7128" required>
 					</div>
@@ -51,6 +55,10 @@
 					<div class="form-group">
 						<label for="editLocationUrl">Image URL</label>
 						<input type="url" id="editLocationUrl" placeholder="https://example.com/image.jpg" required>
+					</div>
+					<div class="form-group">
+						<label for="editLocationDescription">Description</label>
+						<input type="text" id="editLocationDescription" placeholder="Eiffel Tower, Paris" required>
 					</div>
 					<div class="form-group">
 						<label for="editLocationLatitude">Latitude</label>
@@ -100,6 +108,10 @@
 				<div class="location-card" data-id="${location.id}">
 					<img src="${location.url}" alt="Location" class="location-image" onerror="this.src='https://via.placeholder.com/200x150?text=Image+Not+Found'">
 					<div class="location-details">
+						<div class="location-description">
+							<strong>📝 Description:</strong><br>
+							${location.description}
+						</div>
 						<div class="location-coords">
 							<strong>📍 Coordinates:</strong><br>
 							Lat: ${location.latitude.toFixed(6)}, Lng: ${location.longitude.toFixed(6)}
@@ -129,22 +141,25 @@
 			
 			// Clear add form
 			document.getElementById('newLocationUrl').value = '';
+			document.getElementById('newLocationDescription').value = '';
 			document.getElementById('newLocationLatitude').value = '';
 			document.getElementById('newLocationLongitude').value = '';
 			
 			// Clear edit form
 			document.getElementById('editLocationId').value = '';
 			document.getElementById('editLocationUrl').value = '';
+			document.getElementById('editLocationDescription').value = '';
 			document.getElementById('editLocationLatitude').value = '';
 			document.getElementById('editLocationLongitude').value = '';
 		}
 		
 		async function addLocation() {
 			const url = document.getElementById('newLocationUrl').value;
+			const description = document.getElementById('newLocationDescription').value;
 			const latitude = parseFloat(document.getElementById('newLocationLatitude').value);
 			const longitude = parseFloat(document.getElementById('newLocationLongitude').value);
 			
-			if (!url || isNaN(latitude) || isNaN(longitude)) {
+			if (!url || !description || isNaN(latitude) || isNaN(longitude)) {
 				alert('Please fill in all fields correctly');
 				return;
 			}
@@ -155,7 +170,7 @@
 					headers: {
 						'Content-Type': 'application/json'
 					},
-					body: JSON.stringify({ url, latitude, longitude })
+					body: JSON.stringify({ url, description, latitude, longitude })
 				});
 				
 				if (response.ok) {
@@ -186,6 +201,7 @@
 				// Populate the edit form
 				document.getElementById('editLocationId').value = location.id;
 				document.getElementById('editLocationUrl').value = location.url;
+				document.getElementById('editLocationDescription').value = location.description;
 				document.getElementById('editLocationLatitude').value = location.latitude;
 				document.getElementById('editLocationLongitude').value = location.longitude;
 				
@@ -204,10 +220,11 @@
 		async function updateLocation() {
 			const id = document.getElementById('editLocationId').value;
 			const url = document.getElementById('editLocationUrl').value;
+			const description = document.getElementById('editLocationDescription').value;
 			const latitude = parseFloat(document.getElementById('editLocationLatitude').value);
 			const longitude = parseFloat(document.getElementById('editLocationLongitude').value);
 			
-			if (!url || isNaN(latitude) || isNaN(longitude)) {
+			if (!url || !description || isNaN(latitude) || isNaN(longitude)) {
 				alert('Please fill in all fields correctly');
 				return;
 			}
@@ -218,7 +235,7 @@
 					headers: {
 						'Content-Type': 'application/json'
 					},
-					body: JSON.stringify({ url, latitude, longitude })
+					body: JSON.stringify({ url, description, latitude, longitude })
 				});
 				
 				if (response.ok) {

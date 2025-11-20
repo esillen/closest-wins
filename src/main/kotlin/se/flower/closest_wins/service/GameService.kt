@@ -10,7 +10,8 @@ import java.util.concurrent.atomic.AtomicReference
 @Service
 class GameService(
 	private val playerService: PlayerService,
-	private val locationService: LocationService
+	private val locationService: LocationService,
+	private val gameBroadcastService: GameBroadcastService
 ) {
 	private val currentGame = AtomicReference<Game>(Game(players = emptyList()))
 
@@ -57,15 +58,26 @@ class GameService(
 		if (game.upcomingLocations.isEmpty()) {
 			throw IllegalStateException("No upcoming locations available")
 		}
+
+		// Move current location to past
+		val newPastLocations = if (game.currentLocation != null) {
+			game.pastLocations + game.currentLocation
+		} else {
+			game.pastLocations
+		}
 		
-		// Transition to COUNTING_DOWN state
+		// Transition to COUNTING_DOWN state (location is hidden during countdown)
 		val newGame = game.copy(
 			state = GameState.COUNTING_DOWN,
-			countdownSecondsLeft = game.settings.countdownDurationSeconds
+			currentLocation = null,
+			countdownSecondsLeft = game.settings.countdownDurationSeconds,
+			pastLocations = newPastLocations
 		)
 		
 		currentGame.set(newGame)
-		return getCurrentGame()
+		val updatedGame = getCurrentGame()
+		gameBroadcastService.broadcastGameUpdate(updatedGame)
+		return updatedGame
 	}
 
 	fun tick() {
@@ -110,20 +122,12 @@ class GameService(
 		// Move first upcoming location to current
 		val nextLocation = game.upcomingLocations.first()
 		val newUpcoming = game.upcomingLocations.drop(1)
-
-		// Move current location to past
-		val newPastLocations = if (game.currentLocation != null) {
-			game.pastLocations + game.currentLocation
-		} else {
-			game.pastLocations
-		}
 		
 		val newGame = game.copy(
 			state = GameState.PLAYING,
 			currentLocation = nextLocation,
 			upcomingLocations = newUpcoming,
 			roundSecondsLeft = game.settings.roundDurationSeconds,
-			pastLocations = newPastLocations,
 			countdownSecondsLeft = 0
 		)
 		

@@ -9,9 +9,9 @@ import java.util.concurrent.ConcurrentHashMap
 class LocationService {
     private val locations = ConcurrentHashMap<String, Location>()
 
-    fun createLocation(url: String, longitude: Double, latitude: Double): Location {
+    fun createLocation(url: String, latitude: Double, longitude: Double, description: String): Location {
         val id = UUID.randomUUID().toString()
-        val location = Location(id = id, url = url, latitude = latitude, longitude = longitude)
+        val location = Location(id = id, url = url, latitude = latitude, longitude = longitude, description = description)
         locations[id] = location
         return location
     }
@@ -24,9 +24,9 @@ class LocationService {
         return locations.values.toList()
     }
 
-    fun updateLocation(id: String, url: String, longitude: Double, latitude: Double): Location? {
+    fun updateLocation(id: String, url: String, latitude: Double, longitude: Double, description: String): Location? {
         val existingLocation = locations[id] ?: return null
-        val updatedLocation = Location(id = id, url = url, latitude = latitude, longitude = longitude)
+        val updatedLocation = Location(id = id, url = url, latitude = latitude, longitude = longitude, description = description)
         locations[id] = updatedLocation
         return updatedLocation
     }
