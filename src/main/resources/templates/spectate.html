@@ -192,7 +192,47 @@
 		
 		// Update every 2 seconds
 		setInterval(fetchAndUpdatePlayers, 2000);
+		
+		// Load and display current location
+		async function loadCurrentLocation() {
+			try {
+				const response = await fetch('/api/game');
+				if (response.ok) {
+					const game = await response.json();
+					displayCurrentLocation(game.currentLocation);
+				}
+			} catch (error) {
+				console.error('Error loading current location:', error);
+			}
+		}
+		
+		function displayCurrentLocation(location) {
+			const container = document.getElementById('currentLocationDisplay');
+			if (!container) return;
+			
+			container.innerHTML = `<div class="location-label">Current Location</div>`;
+			
+			if (location && location.url) {
+				container.innerHTML += `
+					<img src="${location.url}" 
+						alt="Current Location" 
+						class="location-display-image"
+						onerror="this.style.display='none';">
+				`;
+			} else {
+				container.innerHTML += `<div class="location-display-empty">No current location</div>`;
+			}
+			
+			container.style.display = 'block';
+		}
+		
+		// Load current location on page load and refresh every 5 seconds
+		loadCurrentLocation();
+		setInterval(loadCurrentLocation, 5000);
 	</script>
+	
+	<!-- Current Location Display -->
+	<div id="currentLocationDisplay" class="current-location-display"></div>
 </body>
 </html>
 
