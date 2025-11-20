@@ -4,184 +4,7 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Players - Closest Wins</title>
-	<style>
-		* {
-			margin: 0;
-			padding: 0;
-			box-sizing: border-box;
-		}
-		
-		body {
-			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-			background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-			min-height: 100vh;
-			display: flex;
-			flex-direction: column;
-		}
-		
-		nav {
-			background: rgba(255, 255, 255, 0.1);
-			backdrop-filter: blur(10px);
-			padding: 1rem 2rem;
-			box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-		}
-		
-		nav ul {
-			list-style: none;
-			display: flex;
-			gap: 2rem;
-			align-items: center;
-		}
-		
-		nav a {
-			color: white;
-			text-decoration: none;
-			font-weight: 500;
-			transition: opacity 0.2s;
-		}
-		
-		nav a:hover {
-			opacity: 0.8;
-		}
-		
-		main {
-			flex: 1;
-			padding: 2rem;
-			display: flex;
-			justify-content: center;
-			align-items: flex-start;
-		}
-		
-		.content {
-			background: white;
-			border-radius: 12px;
-			padding: 2rem;
-			box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-			max-width: 900px;
-			width: 100%;
-		}
-		
-		h1 {
-			color: #333;
-			margin-bottom: 1.5rem;
-		}
-		
-		.players-list {
-			display: grid;
-			gap: 1rem;
-		}
-		
-		.player-card {
-			display: flex;
-			align-items: center;
-			gap: 1rem;
-			padding: 1rem;
-			background: #f8f9fa;
-			border-radius: 8px;
-			border-left: 4px solid;
-			transition: transform 0.2s, box-shadow 0.2s;
-		}
-		
-		.player-card:hover {
-			transform: translateY(-2px);
-			box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-		}
-		
-		.player-emoji {
-			font-size: 2rem;
-			width: 3rem;
-			height: 3rem;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			background: white;
-			border-radius: 50%;
-			box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-		}
-		
-		.player-info {
-			flex: 1;
-		}
-		
-		.player-name {
-			font-size: 1.125rem;
-			font-weight: 600;
-			color: #333;
-			margin-bottom: 0.25rem;
-		}
-		
-		.player-id {
-			font-size: 0.875rem;
-			color: #888;
-			font-family: monospace;
-		}
-		
-		.player-guess {
-			font-size: 0.875rem;
-			color: #555;
-			margin-top: 0.5rem;
-		}
-		
-		.player-guess.has-guess {
-			color: #28a745;
-			font-weight: 500;
-		}
-		
-		.no-players {
-			text-align: center;
-			padding: 3rem;
-			color: #888;
-		}
-		
-		.no-players-icon {
-			font-size: 4rem;
-			margin-bottom: 1rem;
-		}
-		
-		.player-actions {
-			display: flex;
-			align-items: center;
-		}
-		
-		.assume-button {
-			padding: 0.5rem 1rem;
-			background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-			color: white;
-			border: none;
-			border-radius: 6px;
-			font-size: 0.875rem;
-			font-weight: 500;
-			cursor: pointer;
-			transition: transform 0.2s, box-shadow 0.2s;
-		}
-		
-		.assume-button:hover {
-			transform: translateY(-2px);
-			box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-		}
-		
-		.assume-button:active {
-			transform: translateY(0);
-		}
-		
-		.success-message {
-			background: #d4edda;
-			color: #155724;
-			padding: 0.75rem;
-			border-radius: 6px;
-			margin-bottom: 1rem;
-			border: 1px solid #c3e6cb;
-		}
-		
-		.error-message {
-			background: #f8d7da;
-			color: #721c24;
-			padding: 0.75rem;
-			border-radius: 6px;
-			margin-bottom: 1rem;
-			border: 1px solid #f5c6cb;
-		}
-	</style>
+	<link rel="stylesheet" th:href="@{/css/styles.css}">
 </head>
 <body>
 	<nav>
@@ -195,13 +18,13 @@
 	</nav>
 	
 	<main>
-		<div class="content">
+		<div class="content medium">
 			<h1>Players</h1>
 			<div th:if="${success}" class="success-message" th:text="${success}"></div>
 			<div th:if="${error}" class="error-message" th:text="${error}"></div>
 			<div th:if="${players == null or players.isEmpty()}" class="no-players">
 				<div class="no-players-icon">👥</div>
-				<p>No players yet. Be the first to <a href="/join" style="color: #667eea;">join</a>!</p>
+				<p>No players yet. Be the first to <a href="/join">join</a>!</p>
 			</div>
 			<div th:if="${players != null and !players.isEmpty()}" class="players-list">
 				<div th:each="player : ${players}" class="player-card" th:style="'border-left-color: ' + ${player.color}">
@@ -218,7 +41,7 @@
 						</div>
 					</div>
 					<div class="player-actions">
-						<form method="post" action="/players/assume" style="margin: 0;">
+						<form method="post" action="/players/assume">
 							<input type="hidden" name="playerId" th:value="${player.id}">
 							<button type="submit" class="assume-button">Assume this player</button>
 						</form>

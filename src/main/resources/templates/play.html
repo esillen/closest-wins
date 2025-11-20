@@ -4,153 +4,9 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Play - Closest Wins</title>
+	<link rel="stylesheet" th:href="@{/css/styles.css}">
 	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 	<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-	<style>
-		* {
-			margin: 0;
-			padding: 0;
-			box-sizing: border-box;
-		}
-		
-		body {
-			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-			background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-			min-height: 100vh;
-			display: flex;
-			flex-direction: column;
-		}
-		
-		nav {
-			background: rgba(255, 255, 255, 0.1);
-			backdrop-filter: blur(10px);
-			padding: 1rem 2rem;
-			box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-		}
-		
-		nav ul {
-			list-style: none;
-			display: flex;
-			gap: 2rem;
-			align-items: center;
-		}
-		
-		nav a {
-			color: white;
-			text-decoration: none;
-			font-weight: 500;
-			transition: opacity 0.2s;
-		}
-		
-		nav a:hover {
-			opacity: 0.8;
-		}
-		
-		main {
-			flex: 1;
-			padding: 2rem;
-			display: flex;
-			justify-content: center;
-			align-items: flex-start;
-		}
-		
-		.content {
-			background: white;
-			border-radius: 12px;
-			padding: 2rem;
-			box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-			max-width: 1200px;
-			width: 100%;
-		}
-		
-		h1 {
-			color: #333;
-			margin-bottom: 1.5rem;
-		}
-		
-		.player-info {
-			background: #f8f9fa;
-			padding: 1rem;
-			border-radius: 8px;
-			margin-bottom: 1.5rem;
-			display: flex;
-			align-items: center;
-			gap: 1rem;
-		}
-		
-		.player-emoji {
-			font-size: 2rem;
-		}
-		
-		.player-details {
-			flex: 1;
-		}
-		
-		.player-name {
-			font-weight: 600;
-			color: #333;
-			margin-bottom: 0.25rem;
-		}
-		
-		.player-status {
-			font-size: 0.875rem;
-			color: #666;
-		}
-		
-		.not-logged-in {
-			text-align: center;
-			padding: 3rem;
-			color: #666;
-		}
-		
-		.not-logged-in a {
-			color: #667eea;
-			text-decoration: none;
-		}
-		
-		.not-logged-in a:hover {
-			text-decoration: underline;
-		}
-		
-		#map {
-			height: 600px;
-			width: 100%;
-			border-radius: 8px;
-			border: 2px solid #e0e0e0;
-		}
-		
-		.map-instructions {
-			margin-top: 1rem;
-			padding: 1rem;
-			background: #e7f3ff;
-			border-radius: 8px;
-			color: #004085;
-			font-size: 0.875rem;
-		}
-		
-		.success-message {
-			background: #d4edda;
-			color: #155724;
-			padding: 0.75rem;
-			border-radius: 6px;
-			margin-bottom: 1rem;
-			border: 1px solid #c3e6cb;
-		}
-		
-		.error-message {
-			background: #f8d7da;
-			color: #721c24;
-			padding: 0.75rem;
-			border-radius: 6px;
-			margin-bottom: 1rem;
-			border: 1px solid #f5c6cb;
-		}
-		
-		.custom-marker {
-			background: transparent;
-			border: none;
-		}
-	</style>
 </head>
 <body>
 	<nav>
@@ -163,8 +19,8 @@
 		</ul>
 	</nav>
 	
-	<main>
-		<div class="content">
+	<main class="align-start">
+		<div class="content wide">
 			<h1>Play</h1>
 			<div th:if="${success}" class="success-message" th:text="${success}"></div>
 			<div th:if="${error}" class="error-message" th:text="${error}"></div>
@@ -225,11 +81,16 @@
 		const playerColor = /*[[${currentPlayer?.color}]]*/ '#667eea';
 		const playerName = /*[[${currentPlayer?.name}]]*/ 'You';
 		
+		// Create style for player marker color
+		const styleEl = document.createElement('style');
+		styleEl.textContent = `.player-marker { border-color: ${playerColor} !important; }`;
+		document.head.appendChild(styleEl);
+		
 		// Custom marker icon for player's own guess
 		function createPlayerMarkerIcon() {
 			return L.divIcon({
-				className: 'custom-marker',
-				html: `<div style="background: white; border-radius: 50%; border: 4px solid ${playerColor}; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);">${playerEmoji}</div>`,
+				className: 'player-marker',
+				html: playerEmoji,
 				iconSize: [50, 50],
 				iconAnchor: [25, 25],
 				popupAnchor: [0, -25]

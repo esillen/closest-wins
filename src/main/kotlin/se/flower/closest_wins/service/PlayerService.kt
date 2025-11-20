@@ -10,16 +10,16 @@ import java.util.concurrent.ConcurrentHashMap
 class PlayerService {
 	private val players = ConcurrentHashMap<String, Player>()
 
-	fun createPlayer(id: String, name: String, emoji: String, color: String): Player {
-		val player = Player(id = id, name = name, emoji = emoji, color = color)
-		players[id] = player
-		return player
-	}
+    fun createPlayer(id: String, name: String, emoji: String, color: String, score: Int = 0): Player {
+        val player = Player(id = id, name = name, emoji = emoji, color = color, score = score)
+        players[id] = player
+        return player
+    }
 
-	fun createPlayer(name: String, emoji: String, color: String): Player {
-		val id = UUID.randomUUID().toString()
-		return createPlayer(id, name, emoji, color)
-	}
+    fun createPlayer(name: String, emoji: String, color: String): Player {
+        val id = UUID.randomUUID().toString()
+        return createPlayer(id, name, emoji, color, 0)
+    }
 
 	fun getPlayer(id: String): Player? {
 		return players[id]
@@ -31,14 +31,20 @@ class PlayerService {
 
 	fun updatePlayerGuess(playerId: String, guess: Guess): Player? {
 		val player = players[playerId] ?: return null
-		val updatedPlayer = player.copy(currentGuess = guess)
+		val updatedPlayer = player.copy(
+			currentGuess = guess,
+			score = player.score
+		)
 		players[playerId] = updatedPlayer
 		return updatedPlayer
 	}
 
 	fun clearPlayerGuess(playerId: String): Player? {
 		val player = players[playerId] ?: return null
-		val updatedPlayer = player.copy(currentGuess = null)
+		val updatedPlayer = player.copy(
+			currentGuess = null,
+			score = player.score
+		)
 		players[playerId] = updatedPlayer
 		return updatedPlayer
 	}
