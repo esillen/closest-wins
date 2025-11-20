@@ -11,7 +11,7 @@ class LocationService {
 
     fun createLocation(url: String, longitude: Double, latitude: Double): Location {
         val id = UUID.randomUUID().toString()
-        val location = Location(id = id, url = url, longitude = longitude, latitude = latitude)
+        val location = Location(id = id, url = url, latitude = latitude, longitude = longitude)
         locations[id] = location
         return location
     }
@@ -26,7 +26,7 @@ class LocationService {
 
     fun updateLocation(id: String, url: String, longitude: Double, latitude: Double): Location? {
         val existingLocation = locations[id] ?: return null
-        val updatedLocation = Location(id = id, url = url, longitude = longitude, latitude = latitude)
+        val updatedLocation = Location(id = id, url = url, latitude = latitude, longitude = longitude)
         locations[id] = updatedLocation
         return updatedLocation
     }

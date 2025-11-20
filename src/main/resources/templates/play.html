@@ -216,33 +216,34 @@
 			}
 		}
 		
+		// Create icon for real location marker
+		function createRealLocationIcon() {
+			return L.divIcon({
+				className: 'real-location-marker',
+				html: '📍',
+				iconSize: [60, 60],
+				iconAnchor: [30, 30],
+				popupAnchor: [0, -30]
+			});
+		}
+		
 		// Update real location marker on map
 		function updateRealLocationMarker(game) {
 			// Show real location marker only in WAITING state
 			if (game && game.state === 'WAITING' && game.currentLocation) {
 				const lat = game.currentLocation.latitude;
-				const lng = normalizeLongitude(game.currentLocation.longitude);
+				const lng = game.currentLocation.longitude;
 				
 				if (realLocationMarker) {
-					// Update existing marker
-					realLocationMarker.setLatLng([lat, lng]);
-				} else {
-					// Create real location marker
-					const realIcon = L.divIcon({
-						className: 'real-location-marker',
-						html: '📍',
-						iconSize: [60, 60],
-						iconAnchor: [30, 30],
-						popupAnchor: [0, -30]
-					});
-					
-					realLocationMarker = L.marker([lat, lng], {
-						icon: realIcon,
-						zIndexOffset: 1000 // Higher z-index to appear on top
-					}).addTo(map);
-					
-					realLocationMarker.bindPopup(`<strong>Real Location</strong><br>📍 ${lat.toFixed(6)}, ${lng.toFixed(6)}`);
+					map.removeLayer(realLocationMarker);
 				}
+				
+				realLocationMarker = L.marker([lat, lng], {
+					icon: createRealLocationIcon(),
+					zIndexOffset: 1000
+				}).addTo(map);
+				
+				realLocationMarker.bindPopup(`<strong>Real Location</strong><br>📍 ${lat.toFixed(6)}, ${lng.toFixed(6)}`);
 			} else {
 				// Remove real location marker if not in WAITING state or no location
 				if (realLocationMarker) {
