@@ -196,18 +196,42 @@
 				const response = await fetch('/api/game');
 				if (response.ok) {
 					const game = await response.json();
-					displayCurrentLocation(game.currentLocation);
+					displayCurrentLocation(game.currentLocation, game);
 				}
 			} catch (error) {
 				console.error('Error loading current location:', error);
 			}
 		}
 		
-		function displayCurrentLocation(location) {
+		function displayCurrentLocation(location, game) {
 			const container = document.getElementById('currentLocationDisplay');
 			if (!container) return;
 			
-			container.innerHTML = `<div class="location-label">Current Location</div>`;
+			// Build game state badge
+			let stateEmoji = '⏸️';
+			let stateDisplay = game ? game.state : 'WAITING';
+			let stateClass = stateDisplay.toLowerCase().replace('_', '-');
+			
+			if (game) {
+				if (game.state === 'WAITING') {
+					stateEmoji = '⏸️';
+				} else if (game.state === 'COUNTING_DOWN') {
+					stateEmoji = '⏳';
+					stateDisplay = `COUNTDOWN (${game.countdownSecondsLeft}s)`;
+				} else if (game.state === 'PLAYING') {
+					stateEmoji = '▶️';
+					stateDisplay = `PLAYING (${game.roundSecondsLeft}s)`;
+				}
+			}
+			
+			container.innerHTML = `
+				<div class="location-header">
+					<div class="location-label">Current Location</div>
+					<div class="status-badge-small status-${stateClass}">
+						${stateEmoji} ${stateDisplay}
+					</div>
+				</div>
+			`;
 			
 			if (location && location.url) {
 				container.innerHTML += `
@@ -236,8 +260,8 @@
 			// Subscribe to game updates
 			stompClient.subscribe('/topic/game', function(message) {
 				const game = JSON.parse(message.body);
-				// Update current location display
-				displayCurrentLocation(game.currentLocation);
+				// Update current location display with game state
+				displayCurrentLocation(game.currentLocation, game);
 			});
 		}, function(error) {
 			console.error('WebSocket connection error:', error);

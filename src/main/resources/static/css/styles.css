@@ -825,15 +825,35 @@ button:active {
 	display: none; /* Hidden by default, shown via JS when location exists */
 }
 
-.current-location-display .location-label {
+.current-location-display .location-header {
 	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 	color: white;
-	padding: 1rem 1.5rem;
+	padding: 0.75rem 1rem;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 1rem;
+}
+
+.current-location-display .location-label {
 	font-weight: 600;
-	font-size: 1.1rem;
+	font-size: 1rem;
 	text-transform: uppercase;
 	letter-spacing: 0.5px;
-	text-align: center;
+	flex-shrink: 0;
+}
+
+.current-location-display .status-badge-small {
+	display: inline-block;
+	padding: 0.35rem 0.75rem;
+	border-radius: 12px;
+	font-weight: 600;
+	font-size: 0.75rem;
+	text-transform: uppercase;
+	letter-spacing: 0.3px;
+	white-space: nowrap;
+	flex-shrink: 1;
+	min-width: 0;
 }
 
 .current-location-display .location-display-image {
@@ -858,6 +878,7 @@ button:active {
 	font-size: 1.1rem;
 	box-sizing: border-box;
 }
+
 
 /* Join Page - Color Picker */
 .color-picker-wrapper {
