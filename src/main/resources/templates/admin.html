@@ -5,6 +5,8 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Admin - Closest Wins</title>
 	<link rel="stylesheet" th:href="@{/css/styles.css}">
+	<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
 </head>
 <body>
 	<nav>
@@ -273,11 +275,29 @@
 		loadStatistics();
 		loadGameStatus();
 		
-		// Refresh statistics and game status every 5 seconds
-		setInterval(() => {
-			loadStatistics();
-			loadGameStatus();
-		}, 5000);
+		// Setup WebSocket connection for real-time updates
+		const socket = new SockJS('/ws');
+		const stompClient = Stomp.over(socket);
+		
+		stompClient.connect({}, function(frame) {
+			console.log('Connected to WebSocket');
+			
+			// Subscribe to game updates
+			stompClient.subscribe('/topic/game', function(message) {
+				const game = JSON.parse(message.body);
+				// Update game status display
+				displayGameStatus(game);
+				// Also refresh statistics
+				loadStatistics();
+			});
+		}, function(error) {
+			console.error('WebSocket connection error:', error);
+			// Fallback to polling if WebSocket fails
+			setInterval(() => {
+				loadStatistics();
+				loadGameStatus();
+			}, 5000);
+		});
 	</script>
 </body>
 </html>

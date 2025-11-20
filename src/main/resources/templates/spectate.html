@@ -7,6 +7,8 @@
 	<link rel="stylesheet" th:href="@{/css/styles.css}">
 	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 	<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
 </head>
 <body>
 	<nav>
@@ -28,6 +30,7 @@
 						<div class="player-count">
 							<span id="playerCount">0</span> players with guesses
 						</div>
+						<div id="gameStateDisplay" class="game-state-display"></div>
 						<div class="update-status" id="updateStatus">
 							<span class="pulse"></span>
 							<span>Live updates active</span>
@@ -190,8 +193,24 @@
 		// Initial load
 		fetchAndUpdatePlayers();
 		
-		// Update every 2 seconds
-		setInterval(fetchAndUpdatePlayers, 2000);
+		// Setup WebSocket connection for real-time updates
+		const socket = new SockJS('/ws');
+		const stompClient = Stomp.over(socket);
+		
+		stompClient.connect({}, function(frame) {
+			console.log('Connected to WebSocket');
+			
+			// Subscribe to game updates
+			stompClient.subscribe('/topic/game', function(message) {
+				const game = JSON.parse(message.body);
+				// Update players when game state changes
+				fetchAndUpdatePlayers();
+			});
+		}, function(error) {
+			console.error('WebSocket connection error:', error);
+			// Fallback to polling if WebSocket fails
+			setInterval(fetchAndUpdatePlayers, 2000);
+		});
 		
 		// Load and display current location
 		async function loadCurrentLocation() {

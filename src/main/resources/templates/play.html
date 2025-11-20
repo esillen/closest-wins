@@ -7,6 +7,8 @@
 	<link rel="stylesheet" th:href="@{/css/styles.css}">
 	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 	<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
 </head>
 <body>
 	<nav>
@@ -221,9 +223,27 @@
 			container.style.display = 'block';
 		}
 		
-		// Load current location on page load and refresh every 5 seconds
+		// Load current location on page load
 		loadCurrentLocation();
-		setInterval(loadCurrentLocation, 5000);
+		
+		// Setup WebSocket connection for real-time updates
+		const socket = new SockJS('/ws');
+		const stompClient = Stomp.over(socket);
+		
+		stompClient.connect({}, function(frame) {
+			console.log('Connected to WebSocket');
+			
+			// Subscribe to game updates
+			stompClient.subscribe('/topic/game', function(message) {
+				const game = JSON.parse(message.body);
+				// Update current location display
+				displayCurrentLocation(game.currentLocation);
+			});
+		}, function(error) {
+			console.error('WebSocket connection error:', error);
+			// Fallback to polling if WebSocket fails
+			setInterval(loadCurrentLocation, 5000);
+		});
 	</script>
 	
 	<!-- Current Location Display -->
