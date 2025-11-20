@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Admin - Closest Wins</title>
+	<style>
+		* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+		}
+		
+		body {
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+			background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+			min-height: 100vh;
+			display: flex;
+			flex-direction: column;
+		}
+		
+		nav {
+			background: rgba(255, 255, 255, 0.1);
+			backdrop-filter: blur(10px);
+			padding: 1rem 2rem;
+			box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+		}
+		
+		nav ul {
+			list-style: none;
+			display: flex;
+			gap: 2rem;
+			align-items: center;
+		}
+		
+		nav a {
+			color: white;
+			text-decoration: none;
+			font-weight: 500;
+			transition: opacity 0.2s;
+		}
+		
+		nav a:hover {
+			opacity: 0.8;
+		}
+		
+		main {
+			flex: 1;
+			padding: 2rem;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+		}
+		
+		.content {
+			background: white;
+			border-radius: 12px;
+			padding: 2rem;
+			box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+			max-width: 800px;
+			width: 100%;
+		}
+		
+		h1 {
+			color: #333;
+			margin-bottom: 1.5rem;
+		}
+		
+		.admin-section {
+			margin-bottom: 2rem;
+			padding: 1.5rem;
+			background: #f5f5f5;
+			border-radius: 8px;
+		}
+		
+		.admin-section h2 {
+			color: #555;
+			margin-bottom: 1rem;
+			font-size: 1.25rem;
+		}
+		
+		.login-form {
+			max-width: 400px;
+			margin: 0 auto;
+		}
+		
+		.form-group {
+			margin-bottom: 1.5rem;
+		}
+		
+		label {
+			display: block;
+			margin-bottom: 0.5rem;
+			color: #555;
+			font-weight: 500;
+		}
+		
+		input[type="password"] {
+			width: 100%;
+			padding: 0.75rem;
+			border: 2px solid #e0e0e0;
+			border-radius: 6px;
+			font-size: 1rem;
+			transition: border-color 0.2s;
+		}
+		
+		input[type="password"]:focus {
+			outline: none;
+			border-color: #667eea;
+		}
+		
+		button {
+			width: 100%;
+			padding: 0.75rem;
+			background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+			color: white;
+			border: none;
+			border-radius: 6px;
+			font-size: 1rem;
+			font-weight: 600;
+			cursor: pointer;
+			transition: transform 0.2s, box-shadow 0.2s;
+		}
+		
+		button:hover {
+			transform: translateY(-2px);
+			box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+		}
+		
+		button:active {
+			transform: translateY(0);
+		}
+		
+		.admin-button {
+			padding: 0.75rem 1.5rem;
+			background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+			color: white;
+			border: none;
+			border-radius: 6px;
+			font-size: 0.875rem;
+			font-weight: 600;
+			cursor: pointer;
+			transition: transform 0.2s, box-shadow 0.2s;
+			margin-right: 0.5rem;
+			margin-bottom: 0.5rem;
+		}
+		
+		.admin-button:hover {
+			transform: translateY(-2px);
+			box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+		}
+		
+		.admin-button.danger {
+			background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+		}
+		
+		.success-message {
+			background: #d4edda;
+			color: #155724;
+			padding: 0.75rem;
+			border-radius: 6px;
+			margin-bottom: 1rem;
+			border: 1px solid #c3e6cb;
+		}
+		
+		.error-message {
+			background: #f8d7da;
+			color: #721c24;
+			padding: 0.75rem;
+			border-radius: 6px;
+			margin-bottom: 1rem;
+			border: 1px solid #f5c6cb;
+		}
+		
+		.stats-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+			gap: 1rem;
+			margin-top: 1rem;
+		}
+		
+		.stat-card {
+			background: white;
+			padding: 1rem;
+			border-radius: 8px;
+			text-align: center;
+		}
+		
+		.stat-value {
+			font-size: 2rem;
+			font-weight: 700;
+			color: #667eea;
+			margin-bottom: 0.25rem;
+		}
+		
+		.stat-label {
+			font-size: 0.875rem;
+			color: #666;
+		}
+	</style>
+</head>
+<body>
+	<nav>
+		<ul>
+			<li><a href="/play">Play</a></li>
+			<li><a href="/spectate">Spectate</a></li>
+			<li><a href="/join">Join</a></li>
+			<li><a href="/players">Players</a></li>
+			<li><a href="/admin">Admin</a></li>
+		</ul>
+	</nav>
+	
+	<main>
+		<div class="content">
+			<h1>Admin Panel</h1>
+			<div th:if="${success}" class="success-message" th:text="${success}"></div>
+			<div th:if="${error}" class="error-message" th:text="${error}"></div>
+			
+			<div th:if="${!isAdmin}">
+				<div class="admin-section">
+					<h2>Admin Login</h2>
+					<form method="post" action="/admin/login" class="login-form">
+						<div class="form-group">
+							<label for="password">Password</label>
+							<input type="password" id="password" name="password" placeholder="Enter admin password" required>
+						</div>
+						<button type="submit">Login</button>
+					</form>
+				</div>
+			</div>
+			
+			<div th:if="${isAdmin}">
+				<div class="admin-section">
+					<h2>Game Statistics</h2>
+					<div id="statsContainer">
+						<p>Loading statistics...</p>
+					</div>
+				</div>
+				
+				<div class="admin-section">
+					<h2>Game Management</h2>
+					<button class="admin-button danger" onclick="resetGame()">Reset Game</button>
+					<button class="admin-button danger" onclick="clearAllGuesses()">Clear All Guesses</button>
+				</div>
+				
+				<div class="admin-section">
+					<h2>User Management</h2>
+					<p>Use the <a href="/players">Players page</a> to manage individual players.</p>
+				</div>
+			</div>
+		</div>
+	</main>
+	
+	<script th:if="${isAdmin}">
+		// Load statistics
+		async function loadStatistics() {
+			try {
+				const response = await fetch('/api/admin/stats');
+				if (response.ok) {
+					const stats = await response.json();
+					displayStatistics(stats);
+				} else {
+					document.getElementById('statsContainer').innerHTML = '<p style="color: red;">Failed to load statistics</p>';
+				}
+			} catch (error) {
+				console.error('Error loading statistics:', error);
+				document.getElementById('statsContainer').innerHTML = '<p style="color: red;">Error loading statistics</p>';
+			}
+		}
+		
+		function displayStatistics(stats) {
+			const container = document.getElementById('statsContainer');
+			container.innerHTML = `
+				<div class="stats-grid">
+					<div class="stat-card">
+						<div class="stat-value">${stats.totalPlayers}</div>
+						<div class="stat-label">Total Players</div>
+					</div>
+					<div class="stat-card">
+						<div class="stat-value">${stats.playersWithGuesses}</div>
+						<div class="stat-label">With Guesses</div>
+					</div>
+					<div class="stat-card">
+						<div class="stat-value">${stats.playersWithoutGuesses}</div>
+						<div class="stat-label">Without Guesses</div>
+					</div>
+				</div>
+			`;
+		}
+		
+		async function resetGame() {
+			if (!confirm('Are you sure you want to reset the game? This will remove all players.')) {
+				return;
+			}
+			
+			try {
+				const response = await fetch('/api/admin/reset-game', {
+					method: 'POST'
+				});
+				const data = await response.json();
+				if (response.ok) {
+					alert('Game reset successfully');
+					loadStatistics();
+					window.location.reload();
+				} else {
+					alert('Error: ' + data.error);
+				}
+			} catch (error) {
+				console.error('Error resetting game:', error);
+				alert('Failed to reset game');
+			}
+		}
+		
+		async function clearAllGuesses() {
+			if (!confirm('Are you sure you want to clear all guesses? This will remove all player guesses but keep the players.')) {
+				return;
+			}
+			
+			try {
+				const response = await fetch('/api/admin/clear-guesses', {
+					method: 'POST'
+				});
+				const data = await response.json();
+				if (response.ok) {
+					alert('All guesses cleared successfully');
+					loadStatistics();
+					window.location.reload();
+				} else {
+					alert('Error: ' + data.error);
+				}
+			} catch (error) {
+				console.error('Error clearing guesses:', error);
+				alert('Failed to clear guesses');
+			}
+		}
+		
+		// Load statistics on page load
+		loadStatistics();
+		
+		// Refresh statistics every 5 seconds
+		setInterval(loadStatistics, 5000);
+	</script>
+</body>
+</html>
+

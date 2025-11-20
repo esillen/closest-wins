@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Play - Closest Wins</title>
+	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+	<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+	<style>
+		* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+		}
+		
+		body {
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+			background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+			min-height: 100vh;
+			display: flex;
+			flex-direction: column;
+		}
+		
+		nav {
+			background: rgba(255, 255, 255, 0.1);
+			backdrop-filter: blur(10px);
+			padding: 1rem 2rem;
+			box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+		}
+		
+		nav ul {
+			list-style: none;
+			display: flex;
+			gap: 2rem;
+			align-items: center;
+		}
+		
+		nav a {
+			color: white;
+			text-decoration: none;
+			font-weight: 500;
+			transition: opacity 0.2s;
+		}
+		
+		nav a:hover {
+			opacity: 0.8;
+		}
+		
+		main {
+			flex: 1;
+			padding: 2rem;
+			display: flex;
+			justify-content: center;
+			align-items: flex-start;
+		}
+		
+		.content {
+			background: white;
+			border-radius: 12px;
+			padding: 2rem;
+			box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+			max-width: 1200px;
+			width: 100%;
+		}
+		
+		h1 {
+			color: #333;
+			margin-bottom: 1.5rem;
+		}
+		
+		.player-info {
+			background: #f8f9fa;
+			padding: 1rem;
+			border-radius: 8px;
+			margin-bottom: 1.5rem;
+			display: flex;
+			align-items: center;
+			gap: 1rem;
+		}
+		
+		.player-emoji {
+			font-size: 2rem;
+		}
+		
+		.player-details {
+			flex: 1;
+		}
+		
+		.player-name {
+			font-weight: 600;
+			color: #333;
+			margin-bottom: 0.25rem;
+		}
+		
+		.player-status {
+			font-size: 0.875rem;
+			color: #666;
+		}
+		
+		.not-logged-in {
+			text-align: center;
+			padding: 3rem;
+			color: #666;
+		}
+		
+		.not-logged-in a {
+			color: #667eea;
+			text-decoration: none;
+		}
+		
+		.not-logged-in a:hover {
+			text-decoration: underline;
+		}
+		
+		#map {
+			height: 600px;
+			width: 100%;
+			border-radius: 8px;
+			border: 2px solid #e0e0e0;
+		}
+		
+		.map-instructions {
+			margin-top: 1rem;
+			padding: 1rem;
+			background: #e7f3ff;
+			border-radius: 8px;
+			color: #004085;
+			font-size: 0.875rem;
+		}
+		
+		.success-message {
+			background: #d4edda;
+			color: #155724;
+			padding: 0.75rem;
+			border-radius: 6px;
+			margin-bottom: 1rem;
+			border: 1px solid #c3e6cb;
+		}
+		
+		.error-message {
+			background: #f8d7da;
+			color: #721c24;
+			padding: 0.75rem;
+			border-radius: 6px;
+			margin-bottom: 1rem;
+			border: 1px solid #f5c6cb;
+		}
+		
+		.custom-marker {
+			background: transparent;
+			border: none;
+		}
+	</style>
+</head>
+<body>
+	<nav>
+		<ul>
+			<li><a href="/play">Play</a></li>
+			<li><a href="/spectate">Spectate</a></li>
+			<li><a href="/join">Join</a></li>
+			<li><a href="/players">Players</a></li>
+			<li><a href="/admin">Admin</a></li>
+		</ul>
+	</nav>
+	
+	<main>
+		<div class="content">
+			<h1>Play</h1>
+			<div th:if="${success}" class="success-message" th:text="${success}"></div>
+			<div th:if="${error}" class="error-message" th:text="${error}"></div>
+			
+			<div th:if="${currentPlayer == null}" class="not-logged-in">
+				<p>You need to be logged in as a player to play.</p>
+				<p><a href="/join">Join the game</a> or <a href="/players">assume a player</a> to get started.</p>
+			</div>
+			
+			<div th:if="${currentPlayer != null}">
+				<div class="player-info">
+					<div class="player-emoji" th:text="${currentPlayer.emoji}"></div>
+					<div class="player-details">
+						<div class="player-name" th:text="${currentPlayer.name}"></div>
+						<div class="player-status" th:if="${currentPlayer.currentGuess != null}">
+							📍 Your guess: <span th:text="${#numbers.formatDecimal(currentPlayer.currentGuess.latitude, 1, 6)}"></span>, 
+							<span th:text="${#numbers.formatDecimal(currentPlayer.currentGuess.longitude, 1, 6)}"></span>
+						</div>
+						<div class="player-status" th:if="${currentPlayer.currentGuess == null}">
+							No guess submitted yet. Click on the map to drop a pin!
+						</div>
+					</div>
+				</div>
+				
+				<div id="map"></div>
+				<div class="map-instructions">
+					💡 Click anywhere on the map to drop a pin and submit your guess. You can update your guess by clicking a new location.
+				</div>
+			</div>
+		</div>
+	</main>
+	
+	<script th:if="${currentPlayer != null}">
+		// Function to normalize longitude to -180 to 180 range
+		function normalizeLongitude(lng) {
+			return ((lng + 180) % 360 + 360) % 360 - 180;
+		}
+		
+		// Initialize map
+		const map = L.map('map', {
+			worldCopyJump: true,
+			maxBounds: [[-90, -180], [90, 180]],
+			maxBoundsViscosity: 1.0
+		}).setView([20, 0], 2);
+		
+		// Add OpenStreetMap tiles
+		L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+			attribution: '© OpenStreetMap contributors',
+			maxZoom: 19,
+			noWrap: true
+		}).addTo(map);
+		
+		let currentMarker = null;
+		let isSubmitting = false;
+		
+		// Get player data
+		const playerEmoji = /*[[${currentPlayer?.emoji}]]*/ '📍';
+		const playerColor = /*[[${currentPlayer?.color}]]*/ '#667eea';
+		const playerName = /*[[${currentPlayer?.name}]]*/ 'You';
+		
+		// Custom marker icon for player's own guess
+		function createPlayerMarkerIcon() {
+			return L.divIcon({
+				className: 'custom-marker',
+				html: `<div style="background: white; border-radius: 50%; border: 4px solid ${playerColor}; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);">${playerEmoji}</div>`,
+				iconSize: [50, 50],
+				iconAnchor: [25, 25],
+				popupAnchor: [0, -25]
+			});
+		}
+		
+		// Load existing guess if available
+		const existingLat = /*[[${currentPlayer?.currentGuess?.latitude}]]*/ null;
+		const existingLng = /*[[${currentPlayer?.currentGuess?.longitude}]]*/ null;
+		
+		if (existingLat != null && existingLng != null && !isNaN(existingLat) && !isNaN(existingLng)) {
+			const normalizedExistingLng = normalizeLongitude(existingLng);
+			currentMarker = L.marker([existingLat, normalizedExistingLng], {
+				draggable: true,
+				icon: createPlayerMarkerIcon()
+			}).addTo(map);
+			
+			currentMarker.bindPopup(`<strong>${playerName}'s Guess</strong><br>📍 ${existingLat.toFixed(6)}, ${normalizedExistingLng.toFixed(6)}`);
+			map.setView([existingLat, normalizedExistingLng], 5);
+			
+			currentMarker.on('dragend', function() {
+				const position = currentMarker.getLatLng();
+				const normalizedLng = normalizeLongitude(position.lng);
+				submitGuess(position.lat, normalizedLng);
+			});
+		}
+		
+		// Handle map clicks
+		map.on('click', function(e) {
+			if (isSubmitting) return;
+			
+			const lat = e.latlng.lat;
+			const lng = normalizeLongitude(e.latlng.lng);
+			
+			// Remove existing marker
+			if (currentMarker) {
+				map.removeLayer(currentMarker);
+			}
+			
+			// Add new marker with custom icon
+			currentMarker = L.marker([lat, lng], {
+				draggable: true,
+				icon: createPlayerMarkerIcon()
+			}).addTo(map);
+			
+			currentMarker.bindPopup(`<strong>${playerName}'s Guess</strong><br>📍 ${lat.toFixed(6)}, ${lng.toFixed(6)}`);
+			
+			// Make marker draggable
+			currentMarker.on('dragend', function() {
+				const position = currentMarker.getLatLng();
+				const normalizedLng = normalizeLongitude(position.lng);
+				submitGuess(position.lat, normalizedLng);
+			});
+			
+			// Submit guess
+			submitGuess(lat, lng);
+		});
+		
+		function submitGuess(latitude, longitude) {
+			if (isSubmitting) return;
+			isSubmitting = true;
+			
+			fetch('/api/game/actions/guess', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					latitude: latitude,
+					longitude: longitude
+				})
+			})
+			.then(response => response.json())
+			.then(data => {
+				isSubmitting = false;
+				if (data.error) {
+					alert('Error: ' + data.error);
+				} else {
+					// Update marker popup with new coordinates
+					if (currentMarker) {
+						currentMarker.setPopupContent(`<strong>${playerName}'s Guess</strong><br>📍 ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
+						currentMarker.openPopup();
+					}
+					// Update the status text without full page reload
+					const statusEl = document.querySelector('.player-status');
+					if (statusEl) {
+						statusEl.innerHTML = `📍 Your guess: <span>${latitude.toFixed(6)}</span>, <span>${longitude.toFixed(6)}</span>`;
+					}
+				}
+			})
+			.catch(error => {
+				isSubmitting = false;
+				console.error('Error:', error);
+				alert('Failed to submit guess. Please try again.');
+			});
+		}
+	</script>
+</body>
+</html>
+

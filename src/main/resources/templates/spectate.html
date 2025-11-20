@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Spectate - Closest Wins</title>
+	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+	<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+	<style>
+		* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+		}
+		
+		body {
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+			background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+			min-height: 100vh;
+			display: flex;
+			flex-direction: column;
+		}
+		
+		nav {
+			background: rgba(255, 255, 255, 0.1);
+			backdrop-filter: blur(10px);
+			padding: 1rem 2rem;
+			box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+		}
+		
+		nav ul {
+			list-style: none;
+			display: flex;
+			gap: 2rem;
+			align-items: center;
+		}
+		
+		nav a {
+			color: white;
+			text-decoration: none;
+			font-weight: 500;
+			transition: opacity 0.2s;
+		}
+		
+		nav a:hover {
+			opacity: 0.8;
+		}
+		
+		main {
+			flex: 1;
+			padding: 2rem;
+			display: flex;
+			justify-content: center;
+			align-items: flex-start;
+		}
+		
+		.content {
+			background: white;
+			border-radius: 12px;
+			padding: 2rem;
+			box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+			max-width: 1200px;
+			width: 100%;
+		}
+		
+		h1 {
+			color: #333;
+			margin-bottom: 1.5rem;
+		}
+		
+		#map {
+			height: 700px;
+			width: 100%;
+			border-radius: 8px;
+			border: 2px solid #e0e0e0;
+		}
+		
+		.status-info {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			margin-bottom: 1rem;
+			padding: 0.75rem;
+			background: #f8f9fa;
+			border-radius: 8px;
+		}
+		
+		.player-count {
+			font-size: 0.875rem;
+			color: #666;
+		}
+		
+		.update-status {
+			font-size: 0.875rem;
+			color: #28a745;
+			display: flex;
+			align-items: center;
+			gap: 0.5rem;
+		}
+		
+		.update-status.updating {
+			color: #ffc107;
+		}
+		
+		.pulse {
+			display: inline-block;
+			width: 8px;
+			height: 8px;
+			border-radius: 50%;
+			background: currentColor;
+			animation: pulse 2s infinite;
+		}
+		
+		@keyframes pulse {
+			0%, 100% {
+				opacity: 1;
+			}
+			50% {
+				opacity: 0.5;
+			}
+		}
+		
+		.legend {
+			margin-top: 1rem;
+			padding: 1rem;
+			background: #f8f9fa;
+			border-radius: 8px;
+			font-size: 0.875rem;
+			color: #666;
+		}
+		
+		.custom-marker {
+			background: white;
+			border-radius: 50%;
+			border: 3px solid;
+			width: 40px;
+			height: 40px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			font-size: 1.5rem;
+			box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+		}
+	</style>
+</head>
+<body>
+	<nav>
+		<ul>
+			<li><a href="/play">Play</a></li>
+			<li><a href="/spectate">Spectate</a></li>
+			<li><a href="/join">Join</a></li>
+			<li><a href="/players">Players</a></li>
+			<li><a href="/admin">Admin</a></li>
+		</ul>
+	</nav>
+	
+	<main>
+		<div class="content">
+			<h1>Spectate</h1>
+			<div class="status-info">
+				<div class="player-count">
+					<span id="playerCount">0</span> players with guesses
+				</div>
+				<div class="update-status" id="updateStatus">
+					<span class="pulse"></span>
+					<span>Live updates active</span>
+				</div>
+			</div>
+			<div id="map"></div>
+			<div class="legend">
+				💡 This map shows all player guesses in real-time. Markers are color-coded by player and show their emoji.
+			</div>
+		</div>
+	</main>
+	
+	<script>
+		// Function to normalize longitude to -180 to 180 range
+		function normalizeLongitude(lng) {
+			return ((lng + 180) % 360 + 360) % 360 - 180;
+		}
+		
+		// Initialize map
+		const map = L.map('map', {
+			worldCopyJump: true,
+			maxBounds: [[-90, -180], [90, 180]],
+			maxBoundsViscosity: 1.0
+		}).setView([20, 0], 2);
+		
+		// Add OpenStreetMap tiles
+		L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+			attribution: '© OpenStreetMap contributors',
+			maxZoom: 19,
+			noWrap: true
+		}).addTo(map);
+		
+		// Store player markers
+		const playerMarkers = new Map();
+		
+		// Custom marker icon function
+		function createCustomIcon(player) {
+			return L.divIcon({
+				className: 'custom-marker',
+				html: `<div style="border-color: ${player.color}; color: ${player.color};" class="custom-marker">${player.emoji}</div>`,
+				iconSize: [40, 40],
+				iconAnchor: [20, 20],
+				popupAnchor: [0, -20]
+			});
+		}
+		
+		// Update markers on the map
+		function updateMap(players) {
+			const playersWithGuesses = players.filter(p => p.currentGuess != null);
+			
+			// Update player count
+			document.getElementById('playerCount').textContent = playersWithGuesses.length;
+			
+			// Create a set of current player IDs with guesses
+			const currentPlayerIds = new Set(playersWithGuesses.map(p => p.id));
+			
+			// Remove markers for players who no longer have guesses or don't exist
+			for (const [playerId, marker] of playerMarkers.entries()) {
+				if (!currentPlayerIds.has(playerId)) {
+					map.removeLayer(marker);
+					playerMarkers.delete(playerId);
+				}
+			}
+			
+			// Add or update markers for players with guesses
+			playersWithGuesses.forEach(player => {
+				const lat = player.currentGuess.latitude;
+				const lng = normalizeLongitude(player.currentGuess.longitude);
+				
+				if (playerMarkers.has(player.id)) {
+					// Update existing marker position
+					const marker = playerMarkers.get(player.id);
+					marker.setLatLng([lat, lng]);
+					marker.setIcon(createCustomIcon(player));
+					marker.bindPopup(`<strong>${player.name}</strong><br>📍 ${lat.toFixed(6)}, ${lng.toFixed(6)}`);
+				} else {
+					// Create new marker
+					const marker = L.marker([lat, lng], {
+						icon: createCustomIcon(player)
+					}).addTo(map);
+					
+					marker.bindPopup(`<strong>${player.name}</strong><br>📍 ${lat.toFixed(6)}, ${lng.toFixed(6)}`);
+					playerMarkers.set(player.id, marker);
+				}
+			});
+		}
+		
+		// Fetch players and update map
+		async function fetchAndUpdatePlayers() {
+			try {
+				const response = await fetch('/api/players');
+				if (response.ok) {
+					const players = await response.json();
+					updateMap(players);
+					
+					// Update status
+					const statusEl = document.getElementById('updateStatus');
+					statusEl.classList.remove('updating');
+					statusEl.innerHTML = '<span class="pulse"></span><span>Live updates active</span>';
+				} else {
+					console.error('Failed to fetch players');
+				}
+			} catch (error) {
+				console.error('Error fetching players:', error);
+				const statusEl = document.getElementById('updateStatus');
+				statusEl.classList.add('updating');
+				statusEl.innerHTML = '<span class="pulse"></span><span>Update error</span>';
+			}
+		}
+		
+		// Initial load
+		fetchAndUpdatePlayers();
+		
+		// Update every 2 seconds
+		setInterval(fetchAndUpdatePlayers, 2000);
+	</script>
+</body>
+</html>
+
