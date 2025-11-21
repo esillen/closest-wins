@@ -28,16 +28,19 @@ class PageController(
 	fun play(session: HttpSession, model: Model): String {
 		val currentPlayer = sessionService.getCurrentPlayer(session, playerService)
 		model.addAttribute("currentPlayer", currentPlayer)
+		model.addAttribute("isAdmin", sessionService.isAdmin(session))
 		return "play"
 	}
 
 	@GetMapping("/spectate")
-	fun spectate(): String {
+	fun spectate(session: HttpSession, model: Model): String {
+		model.addAttribute("isAdmin", sessionService.isAdmin(session))
 		return "spectate"
 	}
 
 	@GetMapping("/join")
-	fun join(): String {
+	fun join(session: HttpSession, model: Model): String {
+		model.addAttribute("isAdmin", sessionService.isAdmin(session))
 		return "join"
 	}
 
@@ -106,8 +109,13 @@ class PageController(
 	}
 
 	@GetMapping("/players")
-	fun players(model: Model): String {
+	fun players(session: HttpSession, model: Model, redirectAttributes: RedirectAttributes): String {
+		if (!sessionService.isAdmin(session)) {
+			redirectAttributes.addFlashAttribute("error", "Admin access required")
+			return "redirect:/admin"
+		}
 		model.addAttribute("players", playerService.getAllPlayers())
+		model.addAttribute("isAdmin", true)
 		return "players"
 	}
 
@@ -117,6 +125,11 @@ class PageController(
 		session: HttpSession,
 		redirectAttributes: RedirectAttributes
 	): String {
+		if (!sessionService.isAdmin(session)) {
+			redirectAttributes.addFlashAttribute("error", "Admin access required")
+			return "redirect:/admin"
+		}
+		
 		val player = playerService.getPlayer(playerId)
 		if (player == null) {
 			redirectAttributes.addFlashAttribute("error", "Player not found")
@@ -125,6 +138,28 @@ class PageController(
 		
 		sessionService.setPlayerId(session, playerId)
 		redirectAttributes.addFlashAttribute("success", "You are now playing as ${player.name}")
+		return "redirect:/players"
+	}
+	
+	@PostMapping("/players/delete")
+	fun deletePlayer(
+		@RequestParam playerId: String,
+		session: HttpSession,
+		redirectAttributes: RedirectAttributes
+	): String {
+		if (!sessionService.isAdmin(session)) {
+			redirectAttributes.addFlashAttribute("error", "Admin access required")
+			return "redirect:/admin"
+		}
+		
+		val player = playerService.getPlayer(playerId)
+		if (player == null) {
+			redirectAttributes.addFlashAttribute("error", "Player not found")
+			return "redirect:/players"
+		}
+		
+		playerService.removePlayer(playerId)
+		redirectAttributes.addFlashAttribute("success", "Player ${player.name} has been deleted")
 		return "redirect:/players"
 	}
 }

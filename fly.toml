@@ -1,0 +1,32 @@
+# fly.toml app configuration file generated for closest-wins on 2025-11-21T08:16:19+01:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'closest-wins'
+primary_region = 'arn'
+
+[build]
+
+[env]
+  PORT = '8080'
+  THYMELEAF_CACHE = 'true'
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = 'off'
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [[http_service.checks]]
+    interval = '15s'
+    timeout = '5s'
+    grace_period = '30s'
+    method = 'GET'
+    path = '/play'
+
+[[vm]]
+  memory = '512mb'
+  cpu_kind = 'shared'
+  cpus = 1

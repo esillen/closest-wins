@@ -49,3 +49,8 @@ tasks.named('test') {
 tasks.named('bootRun') {
 	sourceResources sourceSets.main
 }
+
+// Disable plain jar creation (we only need the executable boot jar)
+tasks.named('jar') {
+	enabled = false
+}

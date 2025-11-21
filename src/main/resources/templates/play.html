@@ -16,7 +16,7 @@
 			<li><a href="/play">Play</a></li>
 			<li><a href="/spectate">Spectate</a></li>
 			<li><a href="/join">Join</a></li>
-			<li><a href="/players">Players</a></li>
+			<li th:if="${isAdmin}"><a href="/players">Players</a></li>
 			<li><a href="/admin">Admin</a></li>
 		</ul>
 	</nav>
@@ -29,7 +29,7 @@
 			
 			<div th:if="${currentPlayer == null}" class="not-logged-in">
 				<p>You need to be logged in as a player to play.</p>
-				<p><a href="/join">Join the game</a> or <a href="/players">assume a player</a> to get started.</p>
+				<p><a href="/join">Join the game</a> to get started.</p>
 			</div>
 			
 			<div th:if="${currentPlayer != null}">

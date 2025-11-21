@@ -14,7 +14,7 @@
 			<li><a href="/play">Play</a></li>
 			<li><a href="/spectate">Spectate</a></li>
 			<li><a href="/join">Join</a></li>
-			<li><a href="/players">Players</a></li>
+			<li th:if="${isAdmin}"><a href="/players">Players</a></li>
 			<li><a href="/admin">Admin</a></li>
 		</ul>
 	</nav>
@@ -63,6 +63,12 @@
 					<h2>Location Management</h2>
 					<p>Manage game locations with images and coordinates.</p>
 					<a href="/admin/locations" class="admin-button">📍 Manage Locations</a>
+				</div>
+				
+				<div class="admin-section">
+					<h2>Player Management</h2>
+					<p>View, assume, and delete players.</p>
+					<a href="/players" class="admin-button">👥 Manage Players</a>
 				</div>
 				
 				<div class="admin-section">
