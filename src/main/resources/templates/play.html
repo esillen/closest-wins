@@ -211,7 +211,7 @@
 			
 			switch(game.state) {
 				case 'BEFORE_GAME':
-					emoji = '🎮';
+					emoji = '';
 					message = 'The game has not started yet. It will be started by the admin.';
 					break;
 				case 'WAITING':
@@ -408,7 +408,7 @@
 			
 			if (game) {
 				if (game.state === 'BEFORE_GAME') {
-					stateEmoji = '🎮';
+					stateEmoji = '';
 					stateDisplay = 'GAME NOT STARTED YET';
 				} else if (game.state === 'WAITING') {
 					stateEmoji = '⏸️';

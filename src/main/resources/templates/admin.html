@@ -53,7 +53,7 @@
 						<p>Loading game status...</p>
 					</div>
 					
-					<a href="/create-game" class="admin-button" style="text-decoration: none; display: inline-block; margin-bottom: 0.5rem;">🎮 Create New Game</a>
+					<a href="/create-game" class="admin-button" style="text-decoration: none; display: inline-block; margin-bottom: 0.5rem;">Create New Game</a>
 					<br>
 					<button class="admin-button danger" onclick="resetGame()">Reset Game</button>
 					<button class="admin-button danger" onclick="clearAllGuesses()">Clear All Guesses</button>
@@ -120,7 +120,7 @@
 			let stateDisplay = game.state;
 			
 			if (game.state === 'BEFORE_GAME') {
-				stateEmoji = '🎮';
+				stateEmoji = '';
 				stateDisplay = 'READY TO START';
 			} else if (game.state === 'WAITING') {
 				stateEmoji = '⏸️';

@@ -26,20 +26,19 @@
 			position: absolute;
 			top: 1.5rem;
 			right: 2rem;
-			background: rgba(255, 255, 255, 0.2);
-			backdrop-filter: blur(10px);
-			color: white;
+			background: #8b7355;
+			color: #f4e8d0;
 			padding: 0.5rem 1rem;
-			border-radius: 8px;
+			border: 2px solid #5d4a36;
 			text-decoration: none;
 			font-size: 0.9rem;
-			font-weight: 500;
-			transition: all 0.2s;
+			font-weight: 600;
+			box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 		}
 		
 		.admin-link:hover {
-			background: rgba(255, 255, 255, 0.3);
-			transform: translateY(-2px);
+			background: #6f5d45;
+			color: #fff;
 		}
 		
 		.logo-section {
@@ -50,14 +49,15 @@
 		.logo-title {
 			font-size: 4rem;
 			font-weight: 700;
-			color: white;
+			color: #2c2416;
 			margin-bottom: 0.5rem;
-			text-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+			text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+			letter-spacing: 2px;
 		}
 		
 		.logo-subtitle {
 			font-size: 1.5rem;
-			color: rgba(255, 255, 255, 0.9);
+			color: #5d4a36;
 			font-weight: 400;
 		}
 		
@@ -68,40 +68,38 @@
 		}
 		
 		.action-button {
-			background: white;
-			color: #667eea;
+			background: #f5eed8;
+			color: #2c2416;
 			padding: 1rem 2.5rem;
-			border-radius: 12px;
+			border: 3px solid #8b7355;
 			text-decoration: none;
 			font-size: 1.2rem;
 			font-weight: 600;
-			box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-			transition: all 0.3s;
-			border: none;
+			box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 			cursor: pointer;
 		}
 		
 		.action-button:hover {
-			transform: translateY(-3px);
-			box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+			background: #ebe3cc;
+			border-color: #5d4a36;
 		}
 		
 		.action-button.primary {
-			background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-			color: white;
+			background: #8b7355;
+			color: #f4e8d0;
+			border-color: #5d4a36;
 		}
 		
 		.stats-section {
-			background: rgba(255, 255, 255, 0.15);
-			backdrop-filter: blur(10px);
-			border-radius: 16px;
+			background: #f5eed8;
+			border: 3px solid #8b7355;
 			padding: 2rem;
 			min-width: 500px;
-			box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+			box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 		}
 		
 		.stats-title {
-			color: white;
+			color: #2c2416;
 			font-size: 1.3rem;
 			font-weight: 600;
 			margin-bottom: 1.5rem;
@@ -115,49 +113,49 @@
 		}
 		
 		.stat-item {
-			background: rgba(255, 255, 255, 0.1);
+			background: #e8dcc8;
 			padding: 1rem;
-			border-radius: 10px;
+			border: 2px solid #8b7355;
 			text-align: center;
 		}
 		
 		.stat-label {
-			color: rgba(255, 255, 255, 0.8);
+			color: #5d4a36;
 			font-size: 0.9rem;
 			margin-bottom: 0.5rem;
 		}
 		
 		.stat-value {
-			color: white;
+			color: #2c2416;
 			font-size: 1.8rem;
 			font-weight: 700;
 		}
 		
 		.game-state {
 			grid-column: 1 / -1;
-			background: rgba(255, 255, 255, 0.2);
+			background: #d9c9a8;
 			padding: 1.2rem;
-			border-radius: 10px;
+			border: 2px solid #8b7355;
 			text-align: center;
 		}
 		
 		.game-state-label {
-			color: rgba(255, 255, 255, 0.8);
+			color: #5d4a36;
 			font-size: 0.9rem;
 			margin-bottom: 0.5rem;
 		}
 		
 		.game-state-value {
-			color: white;
+			color: #2c2416;
 			font-size: 1.5rem;
 			font-weight: 700;
 		}
 		
-		.state-before-game { color: #ffd700; }
-		.state-waiting { color: #90ee90; }
-		.state-counting-down { color: #ffa500; }
-		.state-playing { color: #00ff00; }
-		.state-after-game { color: #ff6b6b; }
+		.state-before-game { color: #8b7355; }
+		.state-waiting { color: #5d7a4f; }
+		.state-counting-down { color: #a89070; }
+		.state-playing { color: #5d7a4f; }
+		.state-after-game { color: #8b4a3d; }
 		
 		@media (max-width: 768px) {
 			.logo-title {
@@ -194,8 +192,8 @@
 		</div>
 		
 		<div class="action-buttons">
-			<a href="/spectate" class="action-button">🔭 Spectate</a>
-			<a href="/join" class="action-button primary">🎮 Join Game</a>
+			<a href="/spectate" class="action-button">Spectate</a>
+			<a href="/join" class="action-button primary">Join Game</a>
 		</div>
 		
 		<div class="stats-section" th:if="${game != null}">
@@ -204,7 +202,7 @@
 				<div class="game-state">
 					<div class="game-state-label">Game State</div>
 					<div class="game-state-value" th:classappend="${'state-' + #strings.toLowerCase(#strings.replace(game.state, '_', '-'))}">
-						<span th:if="${game.state.name() == 'BEFORE_GAME'}">🎮 Ready to Start</span>
+						<span th:if="${game.state.name() == 'BEFORE_GAME'}">Ready to Start</span>
 						<span th:if="${game.state.name() == 'WAITING'}">⏸️ Waiting</span>
 						<span th:if="${game.state.name() == 'COUNTING_DOWN'}">⏳ Countdown</span>
 						<span th:if="${game.state.name() == 'PLAYING'}">▶️ Playing</span>
@@ -231,7 +229,7 @@
 		
 		<div class="stats-section" th:if="${game == null}">
 			<div class="stats-title">No Active Game</div>
-			<p style="color: rgba(255, 255, 255, 0.8); text-align: center;">
+			<p style="color: #5d4a36; text-align: center;">
 				There is currently no active game. An admin needs to create one first.
 			</p>
 		</div>
