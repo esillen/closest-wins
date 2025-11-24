@@ -39,6 +39,15 @@ nav a:hover {
 	opacity: 0.8;
 }
 
+nav .logo {
+	margin-right: auto;
+}
+
+nav .logo a {
+	font-size: 1.25rem;
+	font-weight: 700;
+}
+
 /* Main Content */
 main {
 	flex: 1;
