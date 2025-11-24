@@ -21,13 +21,12 @@
 	
 	<main class="align-start">
 		<div class="content full-width">
-			<h1>Spectate</h1>
+			<div id="gameStateMessage" class="game-state-message">
+				Loading game state...
+			</div>
 			<div class="spectate-container">
 				<div class="spectate-main">
 					<div class="status-info">
-						<div class="player-count">
-							<span id="playerCount">0</span> players with guesses
-						</div>
 						<div class="update-status" id="updateStatus">
 							<span class="pulse"></span>
 							<span>Live updates active</span>
@@ -117,12 +116,16 @@
 					scoreDisplay += ` <span style="color: #28a745;">(+${player.lastScore})</span>`;
 				}
 				
+				// Status indicator: green if has guess, red if not
+				const hasGuess = player.currentGuess != null;
+				const statusDot = `<span class="status-dot ${hasGuess ? 'has-guess' : 'no-guess'}"></span>`;
+				
 				return `
 					<div class="leaderboard-row" style="border-color: ${player.color};">
 						<div class="leaderboard-rank ${rankClass}">${rank}</div>
 						<div class="leaderboard-emoji">${player.emoji}</div>
 						<div class="leaderboard-info">
-							<div class="leaderboard-name">${player.name}</div>
+							<div class="leaderboard-name">${statusDot}${player.name}</div>
 						</div>
 						<div class="leaderboard-score">${scoreDisplay}</div>
 					</div>
@@ -141,6 +144,43 @@
 			});
 		}
 		
+		// Update game state message
+		function updateGameStateMessage(game) {
+			const messageEl = document.getElementById('gameStateMessage');
+			if (!messageEl || !game) return;
+			
+			let message = '';
+			let emoji = '';
+			
+			switch(game.state) {
+				case 'BEFORE_GAME':
+					emoji = '🎮';
+					message = 'The game has not started yet. It will be started by the admin.';
+					break;
+				case 'WAITING':
+					emoji = '⏸️';
+					message = 'Waiting for next round';
+					break;
+				case 'COUNTING_DOWN':
+					emoji = '⏳';
+					message = 'Get ready for the next round';
+					break;
+				case 'PLAYING':
+					emoji = '🎯';
+					message = 'Make your guess!';
+					break;
+				case 'AFTER_GAME':
+					emoji = '🏁';
+					message = 'The game is over! Well played';
+					break;
+				default:
+					emoji = '❓';
+					message = 'Loading...';
+			}
+			
+			messageEl.innerHTML = `<span class="state-emoji">${emoji}</span> ${message}`;
+		}
+		
 		// Update markers on the map
 		function updateMap(players, game) {
 			// Only show player markers in WAITING and AFTER_GAME states
@@ -150,13 +190,9 @@
 					map.removeLayer(marker);
 					playerMarkers.delete(playerId);
 				}
-				document.getElementById('playerCount').textContent = '0';
 			} else {
 				// In WAITING or AFTER_GAME state, show all player guesses
 				const playersWithGuesses = players.filter(p => p.currentGuess != null);
-				
-				// Update player count
-				document.getElementById('playerCount').textContent = playersWithGuesses.length;
 				
 				// Create a set of current player IDs with guesses
 				const currentPlayerIds = new Set(playersWithGuesses.map(p => p.id));
@@ -232,6 +268,7 @@
 					const game = await gameResponse.json();
 					currentGameState = game;
 					
+					updateGameStateMessage(game);
 					updateMap(players, game);
 					updateLeaderboard(players);
 					
