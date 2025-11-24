@@ -33,9 +33,7 @@
 						</div>
 					</div>
 					<div id="map" class="tall"></div>
-					<div class="legend">
-						💡 This map shows all player guesses in real-time. Markers are color-coded by player and show their emoji.
-					</div>
+					
 				</div>
 				<div class="spectate-sidebar">
 					<h2>Leaderboard</h2>
@@ -118,14 +116,13 @@
 				
 				// Status indicator: green if has guess, red if not
 				const hasGuess = player.currentGuess != null;
-				const statusDot = `<span class="status-dot ${hasGuess ? 'has-guess' : 'no-guess'}"></span>`;
 				
 				return `
 					<div class="leaderboard-row" style="border-color: ${player.color};">
 						<div class="leaderboard-rank ${rankClass}">${rank}</div>
 						<div class="leaderboard-emoji">${player.emoji}</div>
 						<div class="leaderboard-info">
-							<div class="leaderboard-name">${statusDot}${player.name}</div>
+							<div class="leaderboard-name">${player.name}</div>
 						</div>
 						<div class="leaderboard-score">${scoreDisplay}</div>
 					</div>
