@@ -110,6 +110,96 @@ class StartupDataInitializer(
 		)
 		locationIds.add(location6.id)
 		
+		// Actual coords: Big Ben is at lat 51.5007, long -0.1246
+		val location7 = locationService.createLocation(
+			url = "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=800",
+			latitude = 51.5007,
+			longitude = -0.1246,
+			description = "Big Ben, London"
+		)
+		locationIds.add(location7.id)
+		
+		// Actual coords: Taj Mahal is at lat 27.1751, long 78.0421
+		val location8 = locationService.createLocation(
+			url = "https://images.unsplash.com/photo-1564507592333-c60657eea523?w=800",
+			latitude = 27.1751,
+			longitude = 78.0421,
+			description = "Taj Mahal, India"
+		)
+		locationIds.add(location8.id)
+		
+		// Actual coords: Great Wall of China is at lat 40.4319, long 116.5704
+		val location9 = locationService.createLocation(
+			url = "https://images.unsplash.com/photo-1508804185872-d7badad00f7d?w=800",
+			latitude = 40.4319,
+			longitude = 116.5704,
+			description = "Great Wall of China"
+		)
+		locationIds.add(location9.id)
+		
+		// Actual coords: Machu Picchu is at lat -13.1631, long -72.5450
+		val location10 = locationService.createLocation(
+			url = "https://images.unsplash.com/photo-1587595431973-160d0d94add1?w=800",
+			latitude = -13.1631,
+			longitude = -72.5450,
+			description = "Machu Picchu, Peru"
+		)
+		locationIds.add(location10.id)
+		
+		// Actual coords: Pyramids of Giza is at lat 29.9792, long 31.1342
+		val location11 = locationService.createLocation(
+			url = "https://images.unsplash.com/photo-1503177119275-0aa32b3a9368?w=800",
+			latitude = 29.9792,
+			longitude = 31.1342,
+			description = "Pyramids of Giza, Egypt"
+		)
+		locationIds.add(location11.id)
+		
+		// Actual coords: Golden Gate Bridge is at lat 37.8199, long -122.4783
+		val location12 = locationService.createLocation(
+			url = "https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=800",
+			latitude = 37.8199,
+			longitude = -122.4783,
+			description = "Golden Gate Bridge, San Francisco"
+		)
+		locationIds.add(location12.id)
+		
+		// Actual coords: Sagrada Familia is at lat 41.4036, long 2.1744
+		val location13 = locationService.createLocation(
+			url = "https://images.unsplash.com/photo-1583422409516-2895a77efded?w=800",
+			latitude = 41.4036,
+			longitude = 2.1744,
+			description = "Sagrada Familia, Barcelona"
+		)
+		locationIds.add(location13.id)
+		
+		// Actual coords: Petra is at lat 30.3285, long 35.4444
+		val location14 = locationService.createLocation(
+			url = "https://images.unsplash.com/photo-1579606032821-4e6161c81bd3?w=800",
+			latitude = 30.3285,
+			longitude = 35.4444,
+			description = "Petra, Jordan"
+		)
+		locationIds.add(location14.id)
+		
+		// Actual coords: Burj Khalifa is at lat 25.1972, long 55.2744
+		val location15 = locationService.createLocation(
+			url = "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=800",
+			latitude = 25.1972,
+			longitude = 55.2744,
+			description = "Burj Khalifa, Dubai"
+		)
+		locationIds.add(location15.id)
+		
+		// Actual coords: Stonehenge is at lat 51.1789, long -1.8262
+		val location16 = locationService.createLocation(
+			url = "https://images.unsplash.com/photo-1599833975787-5c143f373c30?w=800",
+			latitude = 51.1789,
+			longitude = -1.8262,
+			description = "Stonehenge, United Kingdom"
+		)
+		locationIds.add(location16.id)
+		
 		return locationIds
 	}
 	

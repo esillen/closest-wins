@@ -5,6 +5,8 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Location Management - Closest Wins</title>
 	<link rel="stylesheet" th:href="@{/css/styles.css}">
+	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+	<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
 	<nav>
@@ -12,6 +14,8 @@
 			<li class="logo"><a href="/">Closest Wins</a></li>
 			<li><a href="/play">Play</a></li>
 			<li><a href="/spectate">Spectate</a></li>
+			<li th:if="${isAdmin}"><a href="/players">Players</a></li>
+			<li th:if="${isAdmin}"><a href="/admin/locations">Locations</a></li>
 		</ul>
 	</nav>
 	
@@ -61,11 +65,19 @@
 					<div class="form-group">
 						<label for="editLocationLatitude">Latitude</label>
 						<input type="number" id="editLocationLatitude" step="0.000001" min="-90" max="90" placeholder="40.7128" required>
+						<small class="text-muted">Click on the map or type to update coordinates</small>
 					</div>
 					<div class="form-group">
 						<label for="editLocationLongitude">Longitude</label>
 						<input type="number" id="editLocationLongitude" step="0.000001" min="-180" max="180" placeholder="-74.0060" required>
+						<small class="text-muted">Click on the map or type to update coordinates</small>
 					</div>
+					
+					<div class="form-group">
+						<label>Click on the map to set coordinates</label>
+						<div id="locationMap" style="height: 400px; width: 100%; border-radius: 8px; margin-top: 0.5rem;"></div>
+					</div>
+					
 					<button class="admin-button" onclick="updateLocation()">Update Location</button>
 					<button class="admin-button" onclick="cancelLocationForm()">Cancel</button>
 				</div>
@@ -78,6 +90,73 @@
 	</main>
 	
 	<script>
+		// Map instance
+		let locationMap = null;
+		let locationMarker = null;
+		
+		// Initialize map
+		function initializeMap() {
+			if (locationMap) {
+				locationMap.remove();
+			}
+			
+			locationMap = L.map('locationMap').setView([20, 0], 2);
+			
+			L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+				attribution: '© OpenStreetMap contributors',
+				maxZoom: 19
+			}).addTo(locationMap);
+			
+			// Handle map clicks
+			locationMap.on('click', function(e) {
+				const lat = e.latlng.lat;
+				const lng = e.latlng.lng;
+				
+				// Update input fields
+				document.getElementById('editLocationLatitude').value = lat.toFixed(6);
+				document.getElementById('editLocationLongitude').value = lng.toFixed(6);
+				
+				// Update or create marker
+				if (locationMarker) {
+					locationMarker.setLatLng([lat, lng]);
+				} else {
+					locationMarker = L.marker([lat, lng]).addTo(locationMap);
+				}
+				
+				locationMarker.bindPopup(`<strong>Selected Location</strong><br>📍 ${lat.toFixed(6)}, ${lng.toFixed(6)}`).openPopup();
+			});
+			
+			// Add input listeners to update map when inputs change
+			const latInput = document.getElementById('editLocationLatitude');
+			const lngInput = document.getElementById('editLocationLongitude');
+			
+			function updateMapFromInputs() {
+				const lat = parseFloat(latInput.value);
+				const lng = parseFloat(lngInput.value);
+				
+				if (!isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+					updateMapMarker(lat, lng);
+				}
+			}
+			
+			latInput.addEventListener('input', updateMapFromInputs);
+			lngInput.addEventListener('input', updateMapFromInputs);
+		}
+		
+		// Update marker position on map
+		function updateMapMarker(lat, lng) {
+			if (!locationMap) return;
+			
+			if (locationMarker) {
+				locationMarker.setLatLng([lat, lng]);
+			} else {
+				locationMarker = L.marker([lat, lng]).addTo(locationMap);
+			}
+			
+			locationMap.setView([lat, lng], 5);
+			locationMarker.bindPopup(`<strong>Current Location</strong><br>📍 ${lat.toFixed(6)}, ${lng.toFixed(6)}`).openPopup();
+		}
+		
 		// Load locations
 		async function loadLocations() {
 			try {
@@ -149,6 +228,13 @@
 			document.getElementById('editLocationDescription').value = '';
 			document.getElementById('editLocationLatitude').value = '';
 			document.getElementById('editLocationLongitude').value = '';
+			
+			// Clean up map
+			if (locationMap) {
+				locationMap.remove();
+				locationMap = null;
+				locationMarker = null;
+			}
 		}
 		
 		async function addLocation() {
@@ -206,6 +292,12 @@
 				// Hide add form and show edit form
 				document.getElementById('addLocationForm').style.display = 'none';
 				document.getElementById('editLocationForm').style.display = 'block';
+				
+				// Initialize map after form is visible
+				setTimeout(() => {
+					initializeMap();
+					updateMapMarker(location.latitude, location.longitude);
+				}, 100);
 				
 				// Scroll to the form
 				document.getElementById('editLocationForm').scrollIntoView({ behavior: 'smooth' });
