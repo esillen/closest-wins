@@ -16,12 +16,28 @@ import se.flower.closest_wins.util.EmojiValidator
 class PageController(
 	private val playerService: PlayerService,
 	private val sessionService: SessionService,
-	private val adminService: AdminService
+	private val adminService: AdminService,
+	private val gameService: se.flower.closest_wins.service.GameService
 ) {
 
 	@GetMapping("/")
-	fun index(): String {
-		return "redirect:/play"
+	fun index(model: Model): String {
+		val game = gameService.getCurrentGame()
+		val players = playerService.getAllPlayers()
+		
+		// Calculate game stats
+		val totalLocations = game.pastLocations.size + 
+			(if (game.currentLocation != null) 1 else 0) + 
+			game.upcomingLocations.size
+		val currentLocationNumber = game.pastLocations.size + 
+			(if (game.currentLocation != null) 1 else 0)
+		
+		model.addAttribute("game", game)
+		model.addAttribute("playerCount", players.size)
+		model.addAttribute("totalLocations", totalLocations)
+		model.addAttribute("currentLocationNumber", currentLocationNumber)
+		
+		return "index"
 	}
 
 	@GetMapping("/play")

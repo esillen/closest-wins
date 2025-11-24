@@ -16,10 +16,11 @@ class GameTickService(
 		gameService.tick()
 		val currentGame = gameService.getCurrentGame()
 		
-		// Always broadcast during active game states, and when transitioning to WAITING
+		// Always broadcast during active game states, and when transitioning to WAITING or AFTER_GAME
 		if (currentGame.state == GameState.COUNTING_DOWN || 
 			currentGame.state == GameState.PLAYING ||
-			(currentGame.state == GameState.WAITING && previousState != GameState.WAITING)) {
+			(currentGame.state == GameState.WAITING && previousState != GameState.WAITING) ||
+			(currentGame.state == GameState.AFTER_GAME && previousState != GameState.AFTER_GAME)) {
 			gameBroadcastService.broadcastGameUpdate(currentGame)
 		}
 	}

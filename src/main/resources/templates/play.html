@@ -135,8 +135,8 @@
 		
 		// Handle map clicks
 		map.on('click', function(e) {
-			// Disable guess placement in WAITING and COUNTING_DOWN states
-			if (currentGameState && (currentGameState.state === 'WAITING' || currentGameState.state === 'COUNTING_DOWN')) {
+			// Disable guess placement in BEFORE_GAME, WAITING, COUNTING_DOWN, and AFTER_GAME states
+			if (currentGameState && (currentGameState.state === 'BEFORE_GAME' || currentGameState.state === 'WAITING' || currentGameState.state === 'COUNTING_DOWN' || currentGameState.state === 'AFTER_GAME')) {
 				return;
 			}
 			
@@ -161,7 +161,7 @@
 			// Make marker draggable
 			currentMarker.on('dragend', function() {
 				// Check state again before allowing drag
-				if (currentGameState && (currentGameState.state === 'WAITING' || currentGameState.state === 'COUNTING_DOWN')) {
+				if (currentGameState && (currentGameState.state === 'BEFORE_GAME' || currentGameState.state === 'WAITING' || currentGameState.state === 'COUNTING_DOWN' || currentGameState.state === 'AFTER_GAME')) {
 					return;
 				}
 				const position = currentMarker.getLatLng();
@@ -264,8 +264,8 @@
 		
 		// Update real location marker on map
 		function updateRealLocationMarker(game) {
-			// Show real location marker only in WAITING state
-			if (game && game.state === 'WAITING' && game.currentLocation) {
+			// Show real location marker in WAITING and AFTER_GAME states
+			if (game && (game.state === 'WAITING' || game.state === 'AFTER_GAME') && game.currentLocation) {
 				const lat = game.currentLocation.latitude;
 				const lng = game.currentLocation.longitude;
 				
@@ -280,7 +280,7 @@
 				
 				realLocationMarker.bindPopup(`<strong>Real Location</strong><br>📍 ${lat.toFixed(6)}, ${lng.toFixed(6)}`);
 			} else {
-				// Remove real location marker if not in WAITING state or no location
+				// Remove real location marker if not in WAITING or AFTER_GAME state or no location
 				if (realLocationMarker) {
 					map.removeLayer(realLocationMarker);
 					realLocationMarker = null;
@@ -288,10 +288,10 @@
 			}
 		}
 		
-		// Update all player markers on the map (only in WAITING state)
+		// Update all player markers on the map (in WAITING and AFTER_GAME states)
 		function updateAllPlayerMarkers(game) {
-			if (!game || game.state !== 'WAITING') {
-				// Remove all player markers when not in WAITING state
+			if (!game || (game.state !== 'WAITING' && game.state !== 'AFTER_GAME')) {
+				// Remove all player markers when not in WAITING or AFTER_GAME state
 				for (const [playerId, marker] of playerMarkers.entries()) {
 					map.removeLayer(marker);
 					playerMarkers.delete(playerId);
@@ -299,7 +299,7 @@
 				return;
 			}
 			
-			// In WAITING state, show all player guesses
+			// In WAITING or AFTER_GAME state, show all player guesses
 			const players = game.players || [];
 			const playersWithGuesses = players.filter(p => p.currentGuess != null);
 			const currentPlayerIds = new Set(playersWithGuesses.map(p => p.id));
@@ -376,11 +376,14 @@
 			
 			// Build game state badge
 			let stateEmoji = '⏸️';
-			let stateDisplay = game ? game.state : 'WAITING';
-			let stateClass = stateDisplay.toLowerCase().replace('_', '-');
+			let stateDisplay = game ? game.state : 'BEFORE_GAME';
+			let stateClass = stateDisplay.toLowerCase().replace(/_/g, '-');
 			
 			if (game) {
-				if (game.state === 'WAITING') {
+				if (game.state === 'BEFORE_GAME') {
+					stateEmoji = '🎮';
+					stateDisplay = 'READY TO START';
+				} else if (game.state === 'WAITING') {
 					stateEmoji = '⏸️';
 				} else if (game.state === 'COUNTING_DOWN') {
 					stateEmoji = '⏳';
@@ -388,6 +391,9 @@
 				} else if (game.state === 'PLAYING') {
 					stateEmoji = '▶️';
 					stateDisplay = `PLAYING (${game.roundSecondsLeft}s)`;
+				} else if (game.state === 'AFTER_GAME') {
+					stateEmoji = '🏁';
+					stateDisplay = 'GAME OVER';
 				}
 			}
 			
@@ -408,8 +414,8 @@
 						onerror="this.style.display='none';">
 				`;
 				
-				// Show description only in WAITING state
-				if (game && game.state === 'WAITING' && location.description) {
+				// Show description in WAITING and AFTER_GAME states
+				if (game && (game.state === 'WAITING' || game.state === 'AFTER_GAME') && location.description) {
 					container.innerHTML += `
 						<div class="location-description-display">
 							${location.description}

@@ -145,16 +145,16 @@
 		
 		// Update markers on the map
 		function updateMap(players, game) {
-			// Only show player markers in WAITING state
-			if (!game || game.state !== 'WAITING') {
-				// Remove all player markers when not in WAITING state
+			// Only show player markers in WAITING and AFTER_GAME states
+			if (!game || (game.state !== 'WAITING' && game.state !== 'AFTER_GAME')) {
+				// Remove all player markers when not in WAITING or AFTER_GAME state
 				for (const [playerId, marker] of playerMarkers.entries()) {
 					map.removeLayer(marker);
 					playerMarkers.delete(playerId);
 				}
 				document.getElementById('playerCount').textContent = '0';
 			} else {
-				// In WAITING state, show all player guesses
+				// In WAITING or AFTER_GAME state, show all player guesses
 				const playersWithGuesses = players.filter(p => p.currentGuess != null);
 				
 				// Update player count
@@ -194,8 +194,8 @@
 				});
 			}
 			
-			// Handle real location marker in WAITING state
-			if (game && game.state === 'WAITING' && game.currentLocation) {
+			// Handle real location marker in WAITING and AFTER_GAME states
+			if (game && (game.state === 'WAITING' || game.state === 'AFTER_GAME') && game.currentLocation) {
 				const lat = game.currentLocation.latitude;
 				const lng = game.currentLocation.longitude;
 				
@@ -210,7 +210,7 @@
 				
 				realLocationMarker.bindPopup(`<strong>Real Location</strong><br>📍 ${lat.toFixed(6)}, ${lng.toFixed(6)}`);
 			} else {
-				// Remove real location marker if not in WAITING state or no location
+				// Remove real location marker if not in WAITING or AFTER_GAME state or no location
 				if (realLocationMarker) {
 					map.removeLayer(realLocationMarker);
 					realLocationMarker = null;
@@ -294,11 +294,14 @@
 			
 			// Build game state badge
 			let stateEmoji = '⏸️';
-			let stateDisplay = game ? game.state : 'WAITING';
-			let stateClass = stateDisplay.toLowerCase().replace('_', '-');
+			let stateDisplay = game ? game.state : 'BEFORE_GAME';
+			let stateClass = stateDisplay.toLowerCase().replace(/_/g, '-');
 			
 			if (game) {
-				if (game.state === 'WAITING') {
+				if (game.state === 'BEFORE_GAME') {
+					stateEmoji = '🎮';
+					stateDisplay = 'READY TO START';
+				} else if (game.state === 'WAITING') {
 					stateEmoji = '⏸️';
 				} else if (game.state === 'COUNTING_DOWN') {
 					stateEmoji = '⏳';
@@ -306,6 +309,9 @@
 				} else if (game.state === 'PLAYING') {
 					stateEmoji = '▶️';
 					stateDisplay = `PLAYING (${game.roundSecondsLeft}s)`;
+				} else if (game.state === 'AFTER_GAME') {
+					stateEmoji = '🏁';
+					stateDisplay = 'GAME OVER';
 				}
 			}
 			
@@ -326,8 +332,8 @@
 						onerror="this.style.display='none';">
 				`;
 				
-				// Show description only in WAITING state
-				if (game && game.state === 'WAITING' && location.description) {
+				// Show description in WAITING and AFTER_GAME states
+				if (game && (game.state === 'WAITING' || game.state === 'AFTER_GAME') && location.description) {
 					container.innerHTML += `
 						<div class="location-description-display">
 							${location.description}

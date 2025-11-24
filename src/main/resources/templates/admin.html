@@ -115,11 +115,14 @@
 		function displayGameStatus(game) {
 			const container = document.getElementById('gameStatusContainer');
 			
-			const stateClass = game.state.toLowerCase().replace('_', '-');
+			const stateClass = game.state.toLowerCase().replace(/_/g, '-');
 			let stateEmoji = '⏸️';
 			let stateDisplay = game.state;
 			
-			if (game.state === 'WAITING') {
+			if (game.state === 'BEFORE_GAME') {
+				stateEmoji = '🎮';
+				stateDisplay = 'READY TO START';
+			} else if (game.state === 'WAITING') {
 				stateEmoji = '⏸️';
 			} else if (game.state === 'COUNTING_DOWN') {
 				stateEmoji = '⏳';
@@ -127,6 +130,9 @@
 			} else if (game.state === 'PLAYING') {
 				stateEmoji = '▶️';
 				stateDisplay = `PLAYING (${game.roundSecondsLeft}s)`;
+			} else if (game.state === 'AFTER_GAME') {
+				stateEmoji = '🏁';
+				stateDisplay = 'GAME OVER';
 			}
 			
 			let html = `
@@ -177,8 +183,8 @@
 			
 			html += `</div></div>`;
 			
-			// Add "Next Location" button if state is WAITING
-			if (game.state === 'WAITING') {
+			// Add "Next Location" button if state is BEFORE_GAME or WAITING
+			if (game.state === 'BEFORE_GAME' || game.state === 'WAITING') {
 				html += `
 					<div style="margin-top: 1rem;">
 						<button class="admin-button" onclick="nextLocation()">⏭️ Next Location</button>

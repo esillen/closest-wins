@@ -36,7 +36,7 @@ class GameService(
 			currentLocation = null,
 			upcomingLocations = locations,
 			pastLocations = emptyList(),
-			state = GameState.WAITING,
+			state = GameState.BEFORE_GAME,
 			roundSecondsLeft = 0,
 			countdownSecondsLeft = 0,
 			settings = GameSettings(
@@ -52,8 +52,8 @@ class GameService(
 	fun startNextLocation(): Game {
 		val game = currentGame.get()
 		
-		if (game.state != GameState.WAITING) {
-			throw IllegalStateException("Can only start next location when in WAITING state")
+		if (game.state != GameState.WAITING && game.state != GameState.BEFORE_GAME) {
+			throw IllegalStateException("Can only start next location when in WAITING or BEFORE_GAME state")
 		}
 		
 		if (game.upcomingLocations.isEmpty()) {
@@ -106,11 +106,21 @@ class GameService(
 					val newGame = game.copy(roundSecondsLeft = game.roundSecondsLeft - 1)
 					currentGame.set(newGame)
 				} else {
-					// Transition to WAITING
-					transitionToWaiting()
+					// Check if there are more locations to play
+					if (game.upcomingLocations.isEmpty()) {
+						transitionToAfterGame()
+					} else {
+						transitionToWaiting()
+					}
 				}
 			}
+			GameState.BEFORE_GAME -> {
+				// No action needed
+			}
 			GameState.WAITING -> {
+				// No action needed
+			}
+			GameState.AFTER_GAME -> {
 				// No action needed
 			}
 		}
@@ -150,6 +160,21 @@ class GameService(
 		
 		val newGame = game.copy(
 			state = GameState.WAITING,
+		)
+		
+		currentGame.set(newGame)
+	}
+
+	private fun transitionToAfterGame() {
+		val game = currentGame.get()
+		
+		// Calculate and award scores if there's a current location
+		if (game.currentLocation != null) {
+			calculateAndAwardScores(game.currentLocation)
+		}
+		
+		val newGame = game.copy(
+			state = GameState.AFTER_GAME,
 		)
 		
 		currentGame.set(newGame)
