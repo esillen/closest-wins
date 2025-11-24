@@ -21,7 +21,6 @@
 	
 	<main class="align-start">
 		<div class="content wide">
-			<h1>Play</h1>
 			<div th:if="${success}" class="success-message" th:text="${success}"></div>
 			<div th:if="${error}" class="error-message" th:text="${error}"></div>
 			
@@ -31,18 +30,8 @@
 			</div>
 			
 			<div th:if="${currentPlayer != null}">
-				<div class="player-info">
-					<div class="player-emoji" th:text="${currentPlayer.emoji}"></div>
-					<div class="player-details">
-						<div class="player-name" th:text="${currentPlayer.name}"></div>
-						<div class="player-status" th:if="${currentPlayer.currentGuess != null}">
-							📍 Your guess: <span th:text="${#numbers.formatDecimal(currentPlayer.currentGuess.latitude, 1, 6)}"></span>, 
-							<span th:text="${#numbers.formatDecimal(currentPlayer.currentGuess.longitude, 1, 6)}"></span>
-						</div>
-						<div class="player-status" th:if="${currentPlayer.currentGuess == null}">
-							No guess submitted yet. Click on the map to drop a pin!
-						</div>
-					</div>
+				<div id="gameStateMessage" class="game-state-message">
+					Loading game state...
 				</div>
 				
 				<div class="spectate-container">
@@ -210,6 +199,43 @@
 			});
 		}
 		
+		// Update game state message
+		function updateGameStateMessage(game) {
+			const messageEl = document.getElementById('gameStateMessage');
+			if (!messageEl || !game) return;
+			
+			let message = '';
+			let emoji = '';
+			
+			switch(game.state) {
+				case 'BEFORE_GAME':
+					emoji = '🎮';
+					message = 'The game has not started yet. It will be started by the admin.';
+					break;
+				case 'WAITING':
+					emoji = '⏸️';
+					message = 'Waiting for next round';
+					break;
+				case 'COUNTING_DOWN':
+					emoji = '⏳';
+					message = 'Get ready for the next round';
+					break;
+				case 'PLAYING':
+					emoji = '🎯';
+					message = 'Make your guess!';
+					break;
+				case 'AFTER_GAME':
+					emoji = '🏁';
+					message = 'The game is over! Well played';
+					break;
+				default:
+					emoji = '❓';
+					message = 'Loading...';
+			}
+			
+			messageEl.innerHTML = `<span class="state-emoji">${emoji}</span> ${message}`;
+		}
+		
 		// Load and display current location
 		async function loadCurrentLocation() {
 			try {
@@ -217,6 +243,7 @@
 				if (response.ok) {
 					const game = await response.json();
 					currentGameState = game;
+					updateGameStateMessage(game);
 					displayCurrentLocation(game.currentLocation, game);
 					updateRealLocationMarker(game);
 					updateAllPlayerMarkers(game);
@@ -380,12 +407,13 @@
 			if (game) {
 				if (game.state === 'BEFORE_GAME') {
 					stateEmoji = '🎮';
-					stateDisplay = 'READY TO START';
+					stateDisplay = 'GAME NOT STARTED YET';
 				} else if (game.state === 'WAITING') {
 					stateEmoji = '⏸️';
+					stateDisplay = 'WAITING FOR NEXT ROUND';
 				} else if (game.state === 'COUNTING_DOWN') {
 					stateEmoji = '⏳';
-					stateDisplay = `COUNTDOWN (${game.countdownSecondsLeft}s)`;
+					stateDisplay = `GET READY (${game.countdownSecondsLeft}s)`;
 				} else if (game.state === 'PLAYING') {
 					stateEmoji = '▶️';
 					stateDisplay = `PLAYING (${game.roundSecondsLeft}s)`;
@@ -441,6 +469,8 @@
 			stompClient.subscribe('/topic/game', function(message) {
 				const game = JSON.parse(message.body);
 				currentGameState = game;
+				// Update game state message
+				updateGameStateMessage(game);
 				// Update current location display with game state
 				displayCurrentLocation(game.currentLocation, game);
 				// Update real location marker
