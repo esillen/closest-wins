@@ -55,8 +55,13 @@
 				<div class="form-group">
 					<label for="color">Color</label>
 					<div class="color-picker-wrapper">
-						<div class="color-preview" id="colorPreview"></div>
-						<input type="color" id="color" name="color" value="#667eea" required onchange="updateColorPreview()">
+						<div class="color-display">
+							<button type="button" class="color-button" id="colorButton">
+								<div class="color-swatch" id="colorSwatch" style="background-color: #667eea;"></div>
+							</button>
+							<input type="color" id="color" name="color" value="#667eea" required style="position: absolute; opacity: 0; pointer-events: none;">
+							<small class="text-muted">Click to select a color</small>
+						</div>
 					</div>
 				</div>
 				<button type="submit">Join</button>
@@ -113,8 +118,12 @@
 		
 		function updateColorPreview() {
 			const colorInput = document.getElementById('color');
-			const preview = document.getElementById('colorPreview');
-			preview.style.backgroundColor = colorInput.value;
+			const swatch = document.getElementById('colorSwatch');
+			const button = document.getElementById('colorButton');
+			if (swatch && colorInput) {
+				swatch.style.backgroundColor = colorInput.value;
+				button.classList.add('has-color');
+			}
 		}
 		
 		// Close emoji picker when clicking outside
@@ -126,8 +135,25 @@
 			}
 		});
 		
-		// Initialize emoji picker
+		// Setup color picker button
+		const colorButton = document.getElementById('colorButton');
+		const colorInput = document.getElementById('color');
+		
+		if (colorButton && colorInput) {
+			colorButton.addEventListener('click', function(e) {
+				e.preventDefault();
+				e.stopPropagation();
+				colorInput.click();
+			});
+			
+			colorInput.addEventListener('change', function() {
+				updateColorPreview();
+			});
+		}
+		
+		// Initialize emoji picker and color preview
 		showEmojiCategory('smileys');
+		updateColorPreview();
 	</script>
 </body>
 </html>
