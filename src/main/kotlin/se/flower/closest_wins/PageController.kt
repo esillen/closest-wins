@@ -21,7 +21,7 @@ class PageController(
 ) {
 
 	@GetMapping("/")
-	fun index(model: Model): String {
+	fun index(session: HttpSession, model: Model): String {
 		val game = gameService.getCurrentGame()
 		val players = playerService.getAllPlayers()
 		
@@ -37,6 +37,10 @@ class PageController(
 		model.addAttribute("totalLocations", totalLocations)
 		model.addAttribute("currentLocationNumber", currentLocationNumber)
 		
+		// Add session information
+		model.addAttribute("sessionPlayer", sessionService.getCurrentPlayer(session, playerService))
+		model.addAttribute("sessionIsAdmin", sessionService.isAdmin(session))
+		
 		return "index"
 	}
 
@@ -45,18 +49,30 @@ class PageController(
 		val currentPlayer = sessionService.getCurrentPlayer(session, playerService)
 		model.addAttribute("currentPlayer", currentPlayer)
 		model.addAttribute("isAdmin", sessionService.isAdmin(session))
+		
+		// Add session information
+		model.addAttribute("sessionPlayer", currentPlayer)
+		model.addAttribute("sessionIsAdmin", sessionService.isAdmin(session))
 		return "play"
 	}
 
 	@GetMapping("/spectate")
 	fun spectate(session: HttpSession, model: Model): String {
 		model.addAttribute("isAdmin", sessionService.isAdmin(session))
+		
+		// Add session information
+		model.addAttribute("sessionPlayer", sessionService.getCurrentPlayer(session, playerService))
+		model.addAttribute("sessionIsAdmin", sessionService.isAdmin(session))
 		return "spectate"
 	}
 
 	@GetMapping("/join")
 	fun join(session: HttpSession, model: Model): String {
 		model.addAttribute("isAdmin", sessionService.isAdmin(session))
+		
+		// Add session information
+		model.addAttribute("sessionPlayer", sessionService.getCurrentPlayer(session, playerService))
+		model.addAttribute("sessionIsAdmin", sessionService.isAdmin(session))
 		return "join"
 	}
 
@@ -88,6 +104,10 @@ class PageController(
 	fun admin(session: HttpSession, model: Model): String {
 		val isAdmin = sessionService.isAdmin(session)
 		model.addAttribute("isAdmin", isAdmin)
+		
+		// Add session information
+		model.addAttribute("sessionPlayer", sessionService.getCurrentPlayer(session, playerService))
+		model.addAttribute("sessionIsAdmin", isAdmin)
 		return "admin"
 	}
 
@@ -112,15 +132,23 @@ class PageController(
 			redirectAttributes.addFlashAttribute("error", "Admin access required")
 			return "redirect:/admin"
 		}
+		
+		// Add session information
+		model.addAttribute("sessionPlayer", sessionService.getCurrentPlayer(session, playerService))
+		model.addAttribute("sessionIsAdmin", true)
 		return "locations"
 	}
 
 	@GetMapping("/create-game")
-	fun createGame(session: HttpSession, redirectAttributes: RedirectAttributes): String {
+	fun createGame(session: HttpSession, model: Model, redirectAttributes: RedirectAttributes): String {
 		if (!sessionService.isAdmin(session)) {
 			redirectAttributes.addFlashAttribute("error", "Admin access required")
 			return "redirect:/admin"
 		}
+		
+		// Add session information
+		model.addAttribute("sessionPlayer", sessionService.getCurrentPlayer(session, playerService))
+		model.addAttribute("sessionIsAdmin", true)
 		return "create-game"
 	}
 
@@ -132,6 +160,10 @@ class PageController(
 		}
 		model.addAttribute("players", playerService.getAllPlayers())
 		model.addAttribute("isAdmin", true)
+		
+		// Add session information
+		model.addAttribute("sessionPlayer", sessionService.getCurrentPlayer(session, playerService))
+		model.addAttribute("sessionIsAdmin", true)
 		return "players"
 	}
 

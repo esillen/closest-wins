@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+	<!-- Session Status Component - displays current player and admin status -->
+	<div th:fragment="session-status" th:if="${sessionPlayer != null or sessionIsAdmin}" class="session-status">
+		<div class="session-status-label">Logged in as</div>
+		<div th:if="${sessionPlayer != null}" class="session-player">
+			<span class="session-emoji" th:text="${sessionPlayer.emoji}">🎮</span>
+			<span class="session-name" th:text="${sessionPlayer.name}">Player Name</span>
+		</div>
+		<div th:if="${sessionIsAdmin}" class="session-admin">
+			<span class="admin-badge">🔧 Admin</span>
+		</div>
+	</div>
+</body>
+</html>
+

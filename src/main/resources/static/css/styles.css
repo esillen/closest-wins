@@ -1131,6 +1131,95 @@ input[type="color"]:focus {
 	border: 2px solid #5d4a36;
 }
 
+/* Session Status Component (Bottom Right) */
+.session-status {
+	position: fixed;
+	bottom: 1rem;
+	right: 1rem;
+	background: #f5eed8;
+	border: 3px solid #8b7355;
+	padding: 0.5rem 0.75rem;
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+	z-index: 1000;
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+}
+
+.session-status-label {
+	font-size: 0.7rem;
+	color: #5d4a36;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	font-weight: 500;
+	white-space: nowrap;
+}
+
+.session-player {
+	display: flex;
+	align-items: center;
+	gap: 0.4rem;
+	padding: 0.3rem 0.5rem;
+	background: #e8dcc8;
+	border: 2px solid #8b7355;
+}
+
+.session-emoji {
+	font-size: 1.2rem;
+	line-height: 1;
+}
+
+.session-name {
+	font-weight: 600;
+	color: #2c2416;
+	font-size: 0.85rem;
+	white-space: nowrap;
+}
+
+.session-admin {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0.3rem 0.5rem;
+	background: #8b7355;
+	border: 2px solid #5d4a36;
+}
+
+.admin-badge {
+	font-weight: 700;
+	color: #f4e8d0;
+	font-size: 0.8rem;
+	text-align: center;
+	text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.3);
+	white-space: nowrap;
+}
+
+/* Responsive adjustments for session status */
+@media (max-width: 768px) {
+	.session-status {
+		bottom: 0.5rem;
+		right: 0.5rem;
+		padding: 0.4rem 0.6rem;
+		gap: 0.4rem;
+	}
+	
+	.session-status-label {
+		font-size: 0.65rem;
+	}
+	
+	.session-emoji {
+		font-size: 1rem;
+	}
+	
+	.session-name {
+		font-size: 0.75rem;
+	}
+	
+	.admin-badge {
+		font-size: 0.7rem;
+	}
+}
+
 /* Utility Classes */
 .text-muted {
 	color: #888;
