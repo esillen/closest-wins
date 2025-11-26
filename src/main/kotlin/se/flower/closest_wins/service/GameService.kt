@@ -41,7 +41,7 @@ class GameService(
 			countdownSecondsLeft = 0,
 			settings = GameSettings(
 				countdownDurationSeconds = 5,
-				roundDurationSeconds = 10
+				roundDurationSeconds = 15
 			)
 		)
 		
