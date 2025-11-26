@@ -68,8 +68,8 @@
 		}).setView([20, 0], 2);
 		
 		// Add OpenStreetMap tiles
-		L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-			attribution: '© OpenStreetMap contributors',
+		L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
+			attribution: '© OpenStreetMap contributors, © CartoDB',
 			maxZoom: 19,
 			noWrap: true
 		}).addTo(map);
