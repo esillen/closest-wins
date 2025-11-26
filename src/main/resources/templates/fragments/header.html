@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+	<!-- Header/Navigation Component -->
+	<nav th:fragment="header">
+		<ul>
+			<li class="logo"><a href="/">Closest Wins</a></li>
+			<li><a href="/play">Play</a></li>
+			<li><a href="/spectate">Spectate</a></li>
+			<li th:if="${sessionIsAdmin}"><a href="/players">Players</a></li>
+			<li th:if="${sessionIsAdmin}"><a href="/admin/locations">Locations</a></li>
+			<li th:if="${sessionIsAdmin}"><a href="/admin">Admin</a></li>
+		</ul>
+	</nav>
+</body>
+</html>
+

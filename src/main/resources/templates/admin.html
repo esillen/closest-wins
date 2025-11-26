@@ -9,15 +9,8 @@
 	<script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
 </head>
 <body>
-	<nav>
-		<ul>
-			<li class="logo"><a href="/">Closest Wins</a></li>
-			<li><a href="/play">Play</a></li>
-			<li><a href="/spectate">Spectate</a></li>
-			<li th:if="${isAdmin}"><a href="/players">Players</a></li>
-			<li th:if="${isAdmin}"><a href="/admin/locations">Locations</a></li>
-		</ul>
-	</nav>
+	<!-- Header Component -->
+	<div th:replace="~{fragments/header :: header}"></div>
 	
 	<main>
 		<div class="content">
@@ -25,7 +18,7 @@
 			<div th:if="${success}" class="success-message" th:text="${success}"></div>
 			<div th:if="${error}" class="error-message" th:text="${error}"></div>
 			
-			<div th:if="${!isAdmin}">
+			<div th:if="${!sessionIsAdmin}">
 				<div class="admin-section">
 					<h2>Admin Login</h2>
 					<form method="post" action="/admin/login" class="login-form">
@@ -38,7 +31,7 @@
 				</div>
 			</div>
 			
-			<div th:if="${isAdmin}">
+			<div th:if="${sessionIsAdmin}">
 				<div class="admin-section">
 					<h2>Game Statistics</h2>
 					<div id="statsContainer">
@@ -79,7 +72,7 @@
 		</div>
 	</main>
 	
-	<script th:if="${isAdmin}">
+	<script th:if="${sessionIsAdmin}">
 		// Load statistics
 		async function loadStatistics() {
 			try {

@@ -22,21 +22,6 @@ class PageController(
 
 	@GetMapping("/")
 	fun index(session: HttpSession, model: Model): String {
-		val game = gameService.getCurrentGame()
-		val players = playerService.getAllPlayers()
-		
-		// Calculate game stats
-		val totalLocations = game.pastLocations.size + 
-			(if (game.currentLocation != null) 1 else 0) + 
-			game.upcomingLocations.size
-		val currentLocationNumber = game.pastLocations.size + 
-			(if (game.currentLocation != null) 1 else 0)
-		
-		model.addAttribute("game", game)
-		model.addAttribute("playerCount", players.size)
-		model.addAttribute("totalLocations", totalLocations)
-		model.addAttribute("currentLocationNumber", currentLocationNumber)
-		
 		// Add session information
 		model.addAttribute("sessionPlayer", sessionService.getCurrentPlayer(session, playerService))
 		model.addAttribute("sessionIsAdmin", sessionService.isAdmin(session))
@@ -48,7 +33,6 @@ class PageController(
 	fun play(session: HttpSession, model: Model): String {
 		val currentPlayer = sessionService.getCurrentPlayer(session, playerService)
 		model.addAttribute("currentPlayer", currentPlayer)
-		model.addAttribute("isAdmin", sessionService.isAdmin(session))
 		
 		// Add session information
 		model.addAttribute("sessionPlayer", currentPlayer)
@@ -58,8 +42,6 @@ class PageController(
 
 	@GetMapping("/spectate")
 	fun spectate(session: HttpSession, model: Model): String {
-		model.addAttribute("isAdmin", sessionService.isAdmin(session))
-		
 		// Add session information
 		model.addAttribute("sessionPlayer", sessionService.getCurrentPlayer(session, playerService))
 		model.addAttribute("sessionIsAdmin", sessionService.isAdmin(session))
@@ -68,8 +50,6 @@ class PageController(
 
 	@GetMapping("/join")
 	fun join(session: HttpSession, model: Model): String {
-		model.addAttribute("isAdmin", sessionService.isAdmin(session))
-		
 		// Add session information
 		model.addAttribute("sessionPlayer", sessionService.getCurrentPlayer(session, playerService))
 		model.addAttribute("sessionIsAdmin", sessionService.isAdmin(session))
@@ -103,7 +83,6 @@ class PageController(
 	@GetMapping("/admin")
 	fun admin(session: HttpSession, model: Model): String {
 		val isAdmin = sessionService.isAdmin(session)
-		model.addAttribute("isAdmin", isAdmin)
 		
 		// Add session information
 		model.addAttribute("sessionPlayer", sessionService.getCurrentPlayer(session, playerService))
@@ -159,7 +138,6 @@ class PageController(
 			return "redirect:/admin"
 		}
 		model.addAttribute("players", playerService.getAllPlayers())
-		model.addAttribute("isAdmin", true)
 		
 		// Add session information
 		model.addAttribute("sessionPlayer", sessionService.getCurrentPlayer(session, playerService))

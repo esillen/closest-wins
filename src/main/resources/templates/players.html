@@ -7,15 +7,8 @@
 	<link rel="stylesheet" th:href="@{/css/styles.css}">
 </head>
 <body>
-	<nav>
-		<ul>
-			<li class="logo"><a href="/">Closest Wins</a></li>
-			<li><a href="/play">Play</a></li>
-			<li><a href="/spectate">Spectate</a></li>
-			<li th:if="${isAdmin}"><a href="/players">Players</a></li>
-			<li th:if="${isAdmin}"><a href="/admin/locations">Locations</a></li>
-		</ul>
-	</nav>
+	<!-- Header Component -->
+	<div th:replace="~{fragments/header :: header}"></div>
 	
 	<main>
 		<div class="content medium">
@@ -44,7 +37,7 @@
 							No guess yet
 						</div>
 					</div>
-					<div class="player-actions" th:if="${isAdmin}">
+					<div class="player-actions" th:if="${sessionIsAdmin}">
 						<form method="post" action="/players/assume" style="display: inline-block;">
 							<input type="hidden" name="playerId" th:value="${player.id}">
 							<button type="submit" class="assume-button">Assume this player</button>
